@@ -4,10 +4,10 @@ pragma solidity ^0.8.24;
 import {console} from "forge-std/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract TokenWithAdmin is ERC20 {
+contract AdminToken is ERC20 {
     address admin;
 
-    constructor(uint256 amount) ERC20("Token", "TWA") {
+    constructor(uint256 amount) ERC20("AdminToken", "AT") {
         admin = msg.sender;
         _mint(msg.sender, amount);
     }

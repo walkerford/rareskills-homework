@@ -2,12 +2,12 @@
 pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import {TokenWithSanctions, ERC20SanctionedReceiver, ERC20SanctionedSender, ERC20UnauthorizedSanctioner} from "../../src/week-1/TokenWithSanctions.sol";
+import {SanctionToken, ERC20SanctionedReceiver, ERC20SanctionedSender, ERC20UnauthorizedSanctioner} from "../../src/week-1/SanctionToken.sol";
 
 uint256 constant TOTAL_SUPPLY = 1000e18;
 
-contract TokenWithSanctionsTest is Test {
-    TokenWithSanctions token;
+contract SanctionTokenTest is Test {
+    SanctionToken token;
 
     address payable alice;
     address payable bob;
@@ -20,7 +20,7 @@ contract TokenWithSanctionsTest is Test {
         vm.label(bob, "Bob");
 
         vm.prank(alice);
-        token = new TokenWithSanctions(TOTAL_SUPPLY);
+        token = new SanctionToken(TOTAL_SUPPLY);
 
         vm.prank(alice);
         token.transfer(bob, 10e18);

@@ -8,8 +8,8 @@ uint256 constant MULT = 1e15;
 
 error TokenInsufficientFunding(uint256 amount);
 
-contract TokenWithBonding is ERC20 {
-    constructor(uint256 amount) ERC20("Token", "TWB") {
+contract BondCurveToken is ERC20 {
+    constructor(uint256 amount) ERC20("BondCurveToken", "BCT") {
         _mint(msg.sender, amount);
     }
 

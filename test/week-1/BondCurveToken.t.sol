@@ -2,24 +2,22 @@
 pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import {TokenWithBonding} from "../../src/week-1/TokenWithBonding.sol";
+import {BondCurveToken} from "../../src/week-1/BondCurveToken.sol";
 
-contract TokenWithBondingTest is Test {
-    TokenWithBonding token;
+contract BondCurveTokenTest is Test {
+    BondCurveToken token;
 
     address payable alice;
     address payable bob;
 
     function setUp() public {
         alice = payable(makeAddr("alice"));
-        vm.label(alice, "Alice");
         vm.deal(alice, 10 ether);
 
         bob = payable(makeAddr("bob"));
-        vm.label(bob, "Bob");
 
         vm.prank(alice);
-        token = new TokenWithBonding(0);
+        token = new BondCurveToken(0);
     }
 
     function test_LinearPurchase() public {

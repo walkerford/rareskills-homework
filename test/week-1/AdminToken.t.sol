@@ -2,12 +2,12 @@
 pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import {TokenWithAdmin} from "../../src/week-1/TokenWithAdmin.sol";
+import {AdminToken} from "../../src/week-1/AdminToken.sol";
 
 uint256 constant TOTAL_SUPPLY = 1000e18;
 
-contract TokenWithAdminTest is Test {
-    TokenWithAdmin token;
+contract AdminTokenTest is Test {
+    AdminToken token;
 
     address payable alice;
     address payable bob;
@@ -20,7 +20,7 @@ contract TokenWithAdminTest is Test {
         vm.label(bob, "Bob");
 
         vm.prank(alice);
-        token = new TokenWithAdmin(TOTAL_SUPPLY);
+        token = new AdminToken(TOTAL_SUPPLY);
 
         vm.prank(alice);
         token.transfer(bob, 10e18);

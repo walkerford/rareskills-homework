@@ -22,11 +22,11 @@ error ERC20SanctionedSender(address sender);
  */
 error ERC20UnauthorizedSanctioner(address address_);
 
-contract TokenWithSanctions is ERC20 {
+contract SanctionToken is ERC20 {
     address sanctioner;
     mapping(address => bool) private _sanctioned;
 
-    constructor(uint256 amount) ERC20("Token", "TWS") {
+    constructor(uint256 amount) ERC20("SanctionToken", "ST") {
         sanctioner = msg.sender;
         _mint(msg.sender, amount);
     }
