@@ -6,7 +6,7 @@ import {TokenWithAdmin} from "../src/TokenWithAdmin.sol";
 
 uint256 constant TOTAL_SUPPLY = 1000e18;
 
-contract TokenTest is Test {
+contract TokenWithAdminTest is Test {
     TokenWithAdmin token;
 
     address payable alice;
