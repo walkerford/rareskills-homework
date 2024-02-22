@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import {TokenWithAdmin} from "../src/TokenWithAdmin.sol";
+import {TokenWithAdmin} from "../../src/week-1/TokenWithAdmin.sol";
 
 uint256 constant TOTAL_SUPPLY = 1000e18;
 
