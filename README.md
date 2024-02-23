@@ -1,66 +1,15 @@
-## Foundry
+## Rareskills-homework
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This is my work for the [Rareskills](https://www.rareskills.io/) [Advanced Solidity program](https://www.rareskills.io/solidity-bootcamp).
 
-Foundry consists of:
+I am using [Foundry](https://github.com/foundry-rs/foundry) as the execution and unit-testing framework for my solidity contracts.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+Summaries of each week's assignments, including the written responses, are located in the `homework/` folder.
 
-## Documentation
+Solidity contracts are found in the `src/` folder within their respective assigned week sub-folder.
 
-https://book.getfoundry.sh/
+Run the test suite with:
 
-## Usage
-
-### Build
-
-```shell
-$ forge build
 ```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+forge test
 ```
