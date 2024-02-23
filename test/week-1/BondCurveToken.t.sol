@@ -2,13 +2,15 @@
 pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import {BondCurveToken, BctInsufficientFunding} from "../../src/week-1/BondCurveToken.sol";
+import "../../src/week-1/BondCurveToken.sol";
 
-uint256 constant BCT_PURCHASE_AMOUNT_1 = 1e18;
-uint256 constant BCT_PURCHASE_PRICE_1 = 0.5e18;
+uint256 constant TOKEN_AMOUNT_1 = 1e18;
+uint256 constant TOKEN_PRICE_1 = 0.5e18;
 
-uint256 constant BCT_PURCHASE_AMOUNT_2 = 2e18;
-uint256 constant BCT_PURCHASE_PRICE_2 = 4e18;
+uint256 constant TOKEN_AMOUNT_2 = 2e18;
+uint256 constant TOKEN_PRICE_2 = 4e18;
+
+uint256 constant SALE_AMOUNT_1_5 = 1.5e18;
 
 contract BondCurveTokenTest is Test {
     BondCurveToken token;
@@ -29,34 +31,63 @@ contract BondCurveTokenTest is Test {
     function test_Purchases() external {
         // Get price 1
         console.log("Purchase 1");
-        uint256 priceInWei = token.getPriceInWei(BCT_PURCHASE_AMOUNT_1);
-        assertEq(priceInWei, BCT_PURCHASE_PRICE_1);
+        uint256 priceInWei = token.getBuyPriceInWei(TOKEN_AMOUNT_1);
+        assertEq(priceInWei, TOKEN_PRICE_1);
 
         // Make purchase 1
         vm.prank(alice);
-        token.purchase{value: priceInWei}(BCT_PURCHASE_AMOUNT_1);
-        assertEq(token.balanceOf(alice), BCT_PURCHASE_AMOUNT_1);
+        token.buy{value: priceInWei}(TOKEN_AMOUNT_1);
+        assertEq(token.balanceOf(alice), TOKEN_AMOUNT_1);
 
         console.log("Purchase 2");
 
         // Get price 2
-        priceInWei = token.getPriceInWei(BCT_PURCHASE_AMOUNT_2);
-        assertEq(priceInWei, BCT_PURCHASE_PRICE_2);
+        priceInWei = token.getBuyPriceInWei(TOKEN_AMOUNT_2);
+        assertEq(priceInWei, TOKEN_PRICE_2);
 
         // Make purchase 2
         vm.prank(alice);
-        token.purchase{value: priceInWei}(BCT_PURCHASE_AMOUNT_2);
-        assertEq(token.balanceOf(alice), BCT_PURCHASE_AMOUNT_1 + BCT_PURCHASE_AMOUNT_2);
+        token.buy{value: priceInWei}(TOKEN_AMOUNT_2);
+        assertEq(token.balanceOf(alice), TOKEN_AMOUNT_1 + TOKEN_AMOUNT_2);
 
         // Test supply
-        assertEq(token.totalSupply(), BCT_PURCHASE_AMOUNT_1 + BCT_PURCHASE_AMOUNT_2);
+        assertEq(token.totalSupply(), TOKEN_AMOUNT_1 + TOKEN_AMOUNT_2);
     }
 
     function test_RevertWhen_InsufficientPayment() external {
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(BctInsufficientFunding.selector, BCT_PURCHASE_PRICE_1));
-        
-        // Send purchase without payment
-        token.purchase{value: 0}(BCT_PURCHASE_AMOUNT_1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                BctInsufficientFunding.selector,
+                TOKEN_PRICE_1,
+                0
+            )
+        );
+
+        // Buy without payment
+        token.buy{value: 0}(TOKEN_AMOUNT_1);
+    }
+
+    function test_Sell() external {
+        // Purchase
+        uint256 priceInWei = token.getBuyPriceInWei(TOKEN_AMOUNT_2);
+        vm.prank(alice);
+        token.buy{value: priceInWei}(TOKEN_AMOUNT_2);
+
+        assertEq(token.balanceOf(alice), TOKEN_AMOUNT_2);
+
+        // Transfer to another user
+        vm.prank(alice);
+        token.transfer(bob, TOKEN_AMOUNT_2);
+
+        assertEq(token.balanceOf(bob), TOKEN_AMOUNT_2);
+
+        // Sell half
+        vm.prank(bob);
+        token.sell(TOKEN_AMOUNT_1);
+
+        // Check token and ether balances
+        assertEq(token.balanceOf(bob), TOKEN_AMOUNT_1);
+        assertEq(bob.balance, SALE_AMOUNT_1_5);
     }
 }
