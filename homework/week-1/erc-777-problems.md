@@ -26,9 +26,9 @@ The `ERC1363Spender` and `ERC1363Receiver` interfaces specify the callback signa
 
 > Are there prominent ERC-1363 tokens?
 
-## Useful Reading
+## Additional Reading
 
-[History of ERC token standards](https://medium.com/immunefi/how-erc-standards-work-part-1-c9795803f459)
+[History of ERC token standards](https://medium.com/immunefi/how-erc-standards-work-part-1-c9795803f459).  Doesn't cover ERC-777.  Does cover ERC-20, ERC-223, ERC-667, ERC-1363.
 
-I found Dexaran's comments across many forums to be amusing.  He is the developer of the competing [ERC-223](https://github.com/Dexaran/ERC223-token-standard) standard and a harsh advocate against ERC-20s inherent susceptibility in its `transfer` paradigm to accidentally transfer and lose tokens to contracts that don't support ERC-20.  For example, USDT's contract is holding USDT in its own address and has no ability to transfer those back to senders who accidentally sent to the contract itself, instead of the intended destination.
+[ERC-223](https://github.com/Dexaran/ERC223-token-standard).  I found Dexaran's comments across many forums to be amusing.  He is the developer of the competing ERC-223 standard and a harsh advocate against ERC-20's inherent susceptibility in its `transfer` paradigm, which allows to accidentally transfer and lose tokens to contracts that don't support ERC-20 rescue.  For example, USDT's contract is holding USDT in its own address and has no ability to transfer those back to senders who accidentally sent it there, instead of the intended destination.  It is a good idea, when deploying an ERC-20 contract, to provide a `rescue` function, so that the operator can claim such wayward tokens and potentially return them to the sender.
 
