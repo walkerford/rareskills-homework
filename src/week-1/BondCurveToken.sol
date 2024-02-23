@@ -5,8 +5,9 @@ import {console} from "forge-std/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 uint256 constant MULT = 1e15;
+uint256 constant PRICE_UNITS_ADJUSTMENT = 2e18;
 
-error TokenInsufficientFunding(uint256 amount);
+error BctInsufficientFunding(uint256 amount);
 
 contract BondCurveToken is ERC20 {
     constructor(uint256 amount) ERC20("BondCurveToken", "BCT") {
@@ -14,22 +15,20 @@ contract BondCurveToken is ERC20 {
     }
 
     function purchase(uint256 amount) external payable {
-        console.log("purchase() amount:", amount / MULT);
-        uint256 price_ = this.price(amount);
-        console.log("price:", price_ / MULT);
-        console.log("msg.value", msg.value / MULT);
-        if (msg.value < price_) {
-            revert TokenInsufficientFunding(price_ / MULT);
+        console.log("purchase() amount:", amount / MULT, "msg.value", msg.value / MULT);
+        uint256 priceInWei = this.getPriceInWei(amount);
+        if (msg.value < priceInWei) {
+            revert BctInsufficientFunding(priceInWei);
         }
 
         _mint(msg.sender, amount);
     }
 
-    function price(uint256 amount) external view returns (uint256) {
+    function getPriceInWei(uint256 amount) external view returns (uint256) {
         uint256 totalSupply = this.totalSupply();
-        console.log("price() totalSupply:", totalSupply / MULT);
-        uint256 price_ = ((((totalSupply + amount) ** 2)) -
-            (totalSupply ** 2)) / 2e18;
-        return price_;
+        uint256 priceInWei = ((((totalSupply + amount) ** 2)) -
+            (totalSupply ** 2)) / PRICE_UNITS_ADJUSTMENT;
+        console.log("getPriceInWei() totalSupply:", totalSupply / MULT, "price:", priceInWei / MULT);
+        return priceInWei;
     }
 }
