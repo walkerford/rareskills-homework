@@ -9,9 +9,13 @@ uint256 constant TOKEN_LIMIT = 1000;
 contract CappedNFT is ERC721, ERC2981 {
     error LimitReached();
 
+    address owner;
     uint256 tokenSupply;
     
-    constructor() ERC721("Capped NFT", "CNFT") {}
+    constructor() ERC721("Capped NFT", "CNFT") {
+        owner = _msgSender();
+        _setDefaultRoyalty(owner, 250); // 250bp = 2.5%
+    }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, ERC2981) returns(bool) {
         return super.supportsInterface(interfaceId);
