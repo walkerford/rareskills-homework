@@ -37,9 +37,15 @@ contract TestStaking is Test {
         staking.stake(tokenId1);
 
         assertEq(nft.balanceOf(address(staking)), 1);
+
+        vm.prank(alice);
+        staking.unstake(tokenId1);
+
+        assertEq(nft.balanceOf(address(staking)), 0);
+        assertEq(nft.balanceOf(alice), 2);
     }
 
-    function test_RevertWhen_StakingFails() external {
+    function test_RevertWhen_StakingUnauthorized() external {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IERC721Errors.ERC721InsufficientApproval.selector,

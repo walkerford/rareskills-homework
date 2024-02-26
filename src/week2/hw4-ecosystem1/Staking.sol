@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.24;
 
-import {console} from "forge-std/console.sol";
-// import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-
+import "forge-std/console.sol";
 import "./RewardToken.sol";
 import "./LimitedNFT.sol";
+
+error UnauthorizedUnstake();
 
 contract Staking is IERC721Receiver {
     RewardToken rewardToken;
@@ -16,7 +16,6 @@ contract Staking is IERC721Receiver {
     constructor(LimitedNFT nft_) {
         rewardToken = new RewardToken();
         nft = nft_;
-        console.log("test");
     }
 
     function stake(uint256 tokenId) external {
@@ -25,8 +24,13 @@ contract Staking is IERC721Receiver {
     }
 
     function unstake(uint256 tokenId) external {
+        if (stakedNfts[tokenId] != msg.sender) revert UnauthorizedUnstake();
 
+        nft.approve(address(this), tokenId);
+        nft.safeTransferFrom(address(this), msg.sender, tokenId);
     }
+
+    function withdraw() external {}
 
     function onERC721Received(
         address,
