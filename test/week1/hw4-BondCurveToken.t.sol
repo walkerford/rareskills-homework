@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import "../../src/week-1/hw4-BondCurveToken.sol";
+import "../../src/week1/hw4-BondCurveToken.sol";
 
 uint256 constant TOKEN_AMOUNT_1 = 1e18;
 uint256 constant TOKEN_PRICE_1 = 0.5e18;

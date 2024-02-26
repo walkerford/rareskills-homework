@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import {SanctionToken, ERC20SanctionedReceiver, ERC20SanctionedSender, ERC20UnauthorizedSanctioner} from "../../src/week-1/hw5-SanctionToken.sol";
+import {SanctionToken, ERC20SanctionedReceiver, ERC20SanctionedSender, ERC20UnauthorizedSanctioner} from "../../src/week1/hw5-SanctionToken.sol";
 
 uint256 constant TOTAL_SUPPLY = 1000e18;
 

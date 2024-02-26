@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Test.sol";
-import "../../../src/week-2/hw4-ecosystem1/RewardToken.sol";
+import "../../../src/week2/hw4-ecosystem1/RewardToken.sol";
 
 uint256 constant INITIAL_MINT = 1000;
 
