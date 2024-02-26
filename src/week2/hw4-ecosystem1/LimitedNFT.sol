@@ -39,7 +39,7 @@ contract LimitedNFT is ERC721, ERC2981 {
         return super.supportsInterface(interfaceId);
     }
 
-    function mintDicounted(bytes32[] calldata merkleProof, uint256 index) external payable {
+    function mintDicounted(bytes32[] calldata merkleProof, uint256 index) external payable returns(uint256) {
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(_msgSender(), index))));
         bool verified = MerkleProof.verify(merkleProof, merkleRoot, leaf);
 
@@ -54,21 +54,23 @@ contract LimitedNFT is ERC721, ERC2981 {
 
         bitMap.unset(index);
 
-        _mint();
+        return _mint();
     }
 
-    function mint() external payable {
+    function mint() external payable returns(uint256) {
         if (msg.value != PRICE_NORMAL) revert WrongPrice();
 
-        _mint();
+        return _mint();
     }
 
-    function _mint() private {
+    function _mint() private returns(uint256) {
         // Check token supply
         if (tokenSupply > TOKEN_LIMIT - 1) revert LimitReached();
 
         uint256 tokenId = tokenSupply;
         tokenSupply++;
         _safeMint(_msgSender(), tokenId);
+
+        return tokenId;
     }
 }
