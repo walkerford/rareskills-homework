@@ -2,14 +2,14 @@
 pragma solidity 0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
-import "../../../src/week-2/hw4-ecosystem1/CappedNFT.sol";
+import "../../../src/week-2/hw4-ecosystem1/LimitedNFT.sol";
 
 bytes32 constant MERKLE_ROOT = 0x502aa9198af78897bef863c2590af7f5cc8373aa8afd21b12c92b9e7aea0d047;
 bytes32 constant MERKLE_PROOF = 0xebf09d18ef212432cfa2e714503e8710a4032aa6d15b222f8880dd796ec2e957;
 address constant ALICE = 0x1111111111111111111111111111111111111111;
 
-contract TestCappedNFT is Test{
-    CappedNFT token;
+contract TestLimitedNFT is Test{
+    LimitedNFT token;
 
     function setUp() public {
         // alice = makeAddr("alice");
@@ -19,7 +19,7 @@ contract TestCappedNFT is Test{
 
         // Create contract
         vm.prank(ALICE);
-        token = new CappedNFT(MERKLE_ROOT);
+        token = new LimitedNFT(MERKLE_ROOT);
         
         // Mint token using normal minting
         vm.prank(ALICE);

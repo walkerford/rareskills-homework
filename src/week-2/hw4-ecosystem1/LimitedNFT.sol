@@ -10,7 +10,7 @@ uint256 constant TOKEN_LIMIT = 1000;
 uint256 constant PRICE_NORMAL = 1e18;
 uint256 constant PRICE_DISCOUNTED = PRICE_NORMAL / 2;
 
-contract CappedNFT is ERC721, ERC2981 {
+contract LimitedNFT is ERC721, ERC2981 {
     using BitMaps for BitMaps.BitMap;
     
     error LimitReached();
@@ -23,7 +23,7 @@ contract CappedNFT is ERC721, ERC2981 {
     bytes32 merkleRoot;
     BitMaps.BitMap bitMap;
     
-    constructor(bytes32 merkleRoot_) ERC721("Capped NFT", "CNFT") {
+    constructor(bytes32 merkleRoot_) ERC721("Limited NFT", "LT") {
         owner = _msgSender();
         merkleRoot = merkleRoot_;
         _setDefaultRoyalty(owner, 250); // 250bp = 2.5%
