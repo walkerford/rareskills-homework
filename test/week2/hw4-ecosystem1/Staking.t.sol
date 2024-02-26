@@ -27,25 +27,33 @@ contract TestStaking is Test {
         tokenId2 = nft.mint{value: 1 ether}();
     }
 
+    function _stake(address owner, uint256 tokenId) private {
+        vm.prank(owner);
+        nft.approve(address(staking), tokenId);
+        vm.prank(owner);
+        staking.stake(tokenId);
+    }
+
+    function _unstake(address owner, uint256 tokenId) private {
+        vm.prank(owner);
+        staking.unstake(tokenId);
+    }
+
     function test_Staking() external {
         assertEq(nft.balanceOf(alice), 2);
 
-        vm.prank(alice);
-        nft.approve(address(staking), tokenId1);
-
-        vm.prank(alice);
-        staking.stake(tokenId1);
+        _stake(alice, tokenId1);
 
         assertEq(nft.balanceOf(address(staking)), 1);
 
-        vm.prank(alice);
-        staking.unstake(tokenId1);
+        _unstake(alice, tokenId1);
 
         assertEq(nft.balanceOf(address(staking)), 0);
         assertEq(nft.balanceOf(alice), 2);
     }
 
     function test_RevertWhen_StakingUnauthorized() external {
+
         vm.expectRevert(
             abi.encodeWithSelector(
                 IERC721Errors.ERC721InsufficientApproval.selector,
@@ -55,5 +63,17 @@ contract TestStaking is Test {
         );
         vm.prank(alice);
         staking.stake(tokenId2);
+    }
+    
+    function test_RewardsBalanceOf() external {
+        // Stake happens in block 1
+        _stake(alice, tokenId1);
+        
+        // Advance blockchain to block 2
+        vm.roll(2);
+
+        // Test balance after one block
+        uint256 rewards = staking.rewardsBalanceOf(tokenId1);
+        assertEq(rewards, REWARDS_PER_BLOCK);
     }
 }
