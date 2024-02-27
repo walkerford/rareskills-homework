@@ -9,7 +9,7 @@ bytes32 constant MERKLE_PROOF = 0xebf09d18ef212432cfa2e714503e8710a4032aa6d15b22
 address constant ALICE = 0x1111111111111111111111111111111111111111;
 
 contract TestLimitedNFT is Test{
-    LimitedNFT token;
+    LimitedNFT nft;
 
     function setUp() public {
         // alice = makeAddr("alice");
@@ -19,29 +19,43 @@ contract TestLimitedNFT is Test{
 
         // Create contract
         vm.prank(ALICE);
-        token = new LimitedNFT(MERKLE_ROOT);
+        nft = new LimitedNFT(MERKLE_ROOT);
         
-        // Mint token using normal minting
+        // Mint nft using normal minting
         vm.prank(ALICE);
-        token.mint{value: 1 ether}();
+        nft.mint{value: 1 ether}();
     }
 
     function test_Balance() external {
-        assertEq(token.balanceOf(ALICE), 1);
+        assertEq(nft.balanceOf(ALICE), 1);
     }
 
     function test_Discount() external {
         bytes32[] memory proof = new bytes32[](1);
         proof[0] = MERKLE_PROOF;
         vm.prank(ALICE);
-        token.mintDicounted{value: PRICE_DISCOUNTED}(proof, 0);
-        assertEq(token.balanceOf(ALICE), 2);
+        nft.mintDicounted{value: PRICE_DISCOUNTED}(proof, 0);
+        assertEq(nft.balanceOf(ALICE), 2);
     }
 
     function test_Royalty() external {
         // Send purchase price of 1000, contract has 2.5% royalty, so 25 expected.
-        (address royaltyReceiver, uint256 royaltyFraction) = token.royaltyInfo(0, 1000);
+        (address royaltyReceiver, uint256 royaltyFraction) = nft.royaltyInfo(0, 1000);
         assertEq(royaltyReceiver, ALICE);
         assertEq(royaltyFraction, 25);
+    }
+
+    function test_Withdraw() external {
+        // Validate starting balances
+        assertEq(ALICE.balance, 0.5 ether);
+        assertEq(address(nft).balance, 1 ether);
+        
+        // Withdraw ether
+        vm.prank(ALICE);
+        nft.withdraw(1 ether);
+
+        // Validate ending balances
+        assertEq(ALICE.balance, 1.5 ether);
+        assertEq(address(nft).balance, 0);
     }
 }
