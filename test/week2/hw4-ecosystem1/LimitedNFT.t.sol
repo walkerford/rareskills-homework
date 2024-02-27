@@ -26,15 +26,21 @@ contract TestLimitedNFT is Test{
         nft.mint{value: 1 ether}();
     }
 
-    function test_Balance() external {
+    function test_StartingBalance() external {
+        // Should start out with 1 nft minted to alice
         assertEq(nft.balanceOf(ALICE), 1);
     }
 
-    function test_Discount() external {
+    function test_DiscountedMint() external {
+        // Create merkle proof
         bytes32[] memory proof = new bytes32[](1);
         proof[0] = MERKLE_PROOF;
+
+        // Mint discounted
         vm.prank(ALICE);
         nft.mintDicounted{value: PRICE_DISCOUNTED}(proof, 0);
+
+        // Validate mint (Alice starts with 1, but ends with 2)
         assertEq(nft.balanceOf(ALICE), 2);
     }
 
