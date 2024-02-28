@@ -10,23 +10,28 @@ error NotAuthorized();
 error NoStake();
 error NotEnoughCredits();
 
-uint256 constant UNLOCK_PERIOD_IN_BLOCKS = 10;
-uint256 constant SECONDS_PER_BLOCK = 12;
 uint256 constant SECONDS_PER_PERIOD = 60 * 60 * 24;
-uint256 constant BLOCKS_PER_PERIOD = SECONDS_PER_PERIOD / SECONDS_PER_BLOCK;
-uint256 constant REWARDS_PER_PERIOD = 10 ether;
+uint256 constant SECONDS_PER_BLOCK = 12;
+uint256 constant BLOCKS_PER_PERIOD = SECONDS_PER_PERIOD / SECONDS_PER_BLOCK; // 60*60*24/12=7200
+uint256 constant REWARDS_PER_PERIOD = 10e18;
 
 contract Staking is IERC721Receiver {
+    event Stake();
+    event Unstake();
+
+    // Q: Is this necessary?
+    event Withdraw();
+
+    // Q: Is this necesary?
+    event Accumulate();
+
     struct StakedNft {
         address owner;
         uint256 lastUnpaidBlock;
         uint256 credits;
     }
 
-    /// @notice RewardToken contract
     RewardToken public rewardToken;
-
-    /// @notice Nft contract
     LimitedNFT nft;
 
     /// @notice State of each staked NFT
@@ -38,6 +43,9 @@ contract Staking is IERC721Receiver {
         nft.setApprovalForAll(address(this), true);
     }
 
+    /*** EXTERNAL FUNCTIONS ***/
+
+    /// @notice Stake an NFT
     function stake(uint256 tokenId) external {
         // Q: Should this be memory or storage?
         StakedNft memory stakedNft = StakedNft({
@@ -45,48 +53,45 @@ contract Staking is IERC721Receiver {
             lastUnpaidBlock: block.number,
             credits: 0
         });
+
+        // Save state
         stakedNfts[tokenId] = stakedNft;
+
+        // Transfer nft
         nft.safeTransferFrom(msg.sender, address(this), tokenId);
+
+        emit Stake();
     }
 
+    /// @notice Unstake an NFT
     function unstake(uint256 tokenId) external {
         // Validate sender is owner
         if (stakedNfts[tokenId].owner != msg.sender) revert NotAuthorized();
 
         _updateCredits(tokenId);
+
+        // Mark nft as unstaked
         stakedNfts[tokenId].lastUnpaidBlock = 0;
 
+        // Transfer
         nft.safeTransferFrom(address(this), msg.sender, tokenId);
+
+        emit Unstake();
     }
 
+    /// @notice Withdraw all rewards
     function withdraw(uint256 tokenId) external {
         _updateCredits(tokenId);
         _withdraw(tokenId, stakedNfts[tokenId].credits);
     }
 
+    /// @notice Withdraw only a specified amount of rewards
     function withdraw(uint256 tokenId, uint256 amount) external {
         _updateCredits(tokenId);
         _withdraw(tokenId, amount);
     }
 
-    function _withdraw(uint256 tokenId, uint256 amount) private {
-        StakedNft storage staked = stakedNfts[tokenId];
-
-        // Validate owner
-        if (staked.owner != msg.sender) revert NotAuthorized();
-
-        // Validate amount
-        if (amount > staked.credits) revert NotEnoughCredits();
-
-        // Reduce credits
-        staked.credits -= amount;
-
-        // Mint rewards
-        rewardToken.mint(staked.owner, amount);
-    }
-
-    /// @notice Shows the balance of rewards yet to be withdrawn.  Due to unlock period,
-    /// there may be more rewards accrued than are avaiable to withdraw.
+    /// @notice Shows the balance of rewards yet to be withdrawn (credits).
     function credits(uint256 tokenId) external returns (uint256) {
         _updateCredits(tokenId);
         return stakedNfts[tokenId].credits;
@@ -100,6 +105,8 @@ contract Staking is IERC721Receiver {
     ) external pure returns (bytes4) {
         return IERC721Receiver.onERC721Received.selector;
     }
+
+    /*** PRIVATE FUNCTIONS ***/
 
     function _updateCredits(uint256 tokenId) private {
         StakedNft storage staked = stakedNfts[tokenId];
@@ -126,6 +133,26 @@ contract Staking is IERC721Receiver {
             staked.lastUnpaidBlock =
                 staked.lastUnpaidBlock +
                 (periods * BLOCKS_PER_PERIOD);
+
+            emit Accumulate();
         }
+    }
+
+    function _withdraw(uint256 tokenId, uint256 amount) private {
+        StakedNft storage staked = stakedNfts[tokenId];
+
+        // Validate owner
+        if (staked.owner != msg.sender) revert NotAuthorized();
+
+        // Validate amount
+        if (amount > staked.credits) revert NotEnoughCredits();
+
+        // Reduce credits
+        staked.credits -= amount;
+
+        // Mint rewards
+        rewardToken.mint(staked.owner, amount);
+
+        emit Withdraw();
     }
 }
