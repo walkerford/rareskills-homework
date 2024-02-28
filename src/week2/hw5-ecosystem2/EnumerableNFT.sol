@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: Unlicensed
 pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -20,14 +20,4 @@ contract EnumerableNFT is ERC721Enumerable, Ownable {
 
         return tokenId;
     }
-}
-
-contract CheckPrime {
-    EnumerableNFT nft;
-
-    constructor(EnumerableNFT nft_) {
-        nft = nft_;
-    }
-
-    function checkPrime(address owner) external {}
 }
