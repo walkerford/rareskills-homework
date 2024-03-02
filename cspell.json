@@ -10,7 +10,9 @@
         "IERC",
         "Merkle",
         "Rareskills",
-        "reentrancy"
+        "reentrancy",
+        "remappings",
+        "solady"
     ],
     "ignoreWords": [],
     "import": []
