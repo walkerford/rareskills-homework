@@ -7,25 +7,71 @@ import "../../../src/week3-5/Pair.sol";
 
 contract TestPair is Test {
     Pair pair;
+    Token token0;
+    Token token1;
+
+    uint256 constant INITIAL_TOKEN0 = 1e18;
+    uint256 constant INITIAL_TOKEN1 = 4e18;
+    uint256 constant INITIAL_SHARES = 2e18; // sqrt(1e18*4e18)=2e18
 
     function setUp() public {
-        pair = new Pair(address(0x1), address(0x2));
+        vm.label(address(this), "TestPair");
+        token0 = new Token();
+        token1 = new Token();
+
+        token0.mint(address(this), INITIAL_TOKEN0);
+        token1.mint(address(this), INITIAL_TOKEN1);
+
+        pair = new Pair(address(token0), address(token1));
     }
 
-    function test_Update() public {
-        // pair.update(0, 0, 0, 0);
+    function test_Mint() public {
+        // Transfer tokens to Pair contract
+        token0.transfer(address(pair), INITIAL_TOKEN0);
+        token1.transfer(address(pair), INITIAL_TOKEN1);
+
+        assertEq(token0.balanceOf(address(pair)), INITIAL_TOKEN0);
+        assertEq(token1.balanceOf(address(pair)), INITIAL_TOKEN1);
+
+        // Expect transfer event for burning minimum shares
+        vm.expectEmit(true, true, true, true, address(pair));
+        emit ERC20.Transfer(
+            address(0),
+            address(0), // burned
+            pair.MINIMUM_INITIAL_SHARES()
+        );
+
+        // Expect transfer event for initial shares (less minimum) to user
+        vm.expectEmit(true, true, true, true, address(pair));
+        emit ERC20.Transfer(
+            address(0),
+            address(this),
+            INITIAL_SHARES - pair.MINIMUM_INITIAL_SHARES()
+        );
+
+        // Expect Sync event from updating balances
+        vm.expectEmit(true, false, false, true, address(pair));
+        emit Pair.Sync(uint112(INITIAL_TOKEN0), uint112(INITIAL_TOKEN1));
+
+        // Expect Mint event from minting shares
+        vm.expectEmit(true, true, false, true, address(pair));
+        emit Pair.Mint(address(this), INITIAL_TOKEN0, INITIAL_TOKEN1);
+
+        // Mint shares
+        pair.mint(address(this));
     }
 }
 
-// contract TestPairUpdate is Pair {
-//     constructor(address a1, address a2) Pair(a1, a2) {}
+contract Token is ERC20 {
+    function name() public pure override returns (string memory) {
+        return "TestERC";
+    }
 
-//     function update(
-//         uint256 balance0,
-//         uint256 balance1,
-//         uint256 reserve0,
-//         uint256 reserve1
-//     ) public {
-//         _update(balance0, balance1, reserve0, reserve1);
-//     }
-// }
+    function symbol() public pure override returns (string memory) {
+        return "TK";
+    }
+
+    function mint(address to, uint256 amount) public {
+        _mint(to, amount);
+    }
+}

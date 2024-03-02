@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
+import "forge-std/console.sol";
+
 import "solady/tokens/ERC20.sol";
 import "solady/utils/ReentrancyGuard.sol";
 import "solady/utils/FixedPointMathLib.sol";
 import "./Factory.sol";
 import "./UQ112x112.sol";
 
-// contract Pair is ERC20, IUniswapV2Pair {
 contract Pair is ERC20 {
     using UQ112x112 for uint224;
 
     error BalanceOutOfBounds();
     error InsufficientLiquidity();
 
-    event Mint(address to, uint256 amount0, uint256 amount1);
+    event Mint(address indexed to, uint256 amount0, uint256 amount1);
     event Sync(uint112 reserve0, uint112 reserve1);
 
     uint256 public constant MINIMUM_INITIAL_SHARES = 10_000;
@@ -119,7 +120,7 @@ contract Pair is ERC20 {
 
     /*** PRIVATE FUNCTIONS ***/
 
-    function _mint() private {}
+    // function _mint() private {}
 
     function _update(
         uint256 balance0,
@@ -128,7 +129,9 @@ contract Pair is ERC20 {
         uint112 reserve1
     ) private {
         // Bounds check balances
-        if (balance0 <= type(uint112).max || balance1 <= type(uint112).max) {
+        if (balance0 >= type(uint112).max || balance1 >= type(uint112).max) {
+            console.log("_update() balance0:", balance0);
+            console.log("_update() balance1:", balance1);
             revert BalanceOutOfBounds();
         }
 
@@ -143,7 +146,7 @@ contract Pair is ERC20 {
 
         // Update variables for oracle
         // Skip any zero cases
-        if (timeElapsed != 0 || reserve0 != 0 || reserve1 != 0) {
+        if (timeElapsed != 0 && reserve0 != 0 && reserve1 != 0) {
             price0CumulativeLast =
                 uint256(UQ112x112.encode(reserve0).uqdiv(reserve1)) *
                 timeElapsed;
