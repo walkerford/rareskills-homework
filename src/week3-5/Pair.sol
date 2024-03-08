@@ -9,16 +9,27 @@ import "solady/utils/FixedPointMathLib.sol";
 import "./Factory.sol";
 import "./UQ112x112.sol";
 
-contract Pair is ERC20 {
+interface IUniswapV2Callee {
+    function uniswapV2Call(address sender, uint amount0, uint amount1, bytes calldata data) external;
+}
+
+contract Pair is ERC20, ReentrancyGuard {
     using UQ112x112 for uint224;
 
     error BalanceOutOfBounds();
     error InsufficientLiquidity();
+    error InsufficientInput();
+    error InsufficientOutput();
+    error InvalidReserveInvariant();
+    error InvalidTo(address to);
+    error TransferFailed();
 
     event Mint(address indexed to, uint256 amount0, uint256 amount1);
+    event Swap(address from, uint256 amountIn0, uint256 amountIn1, uint256 amountOut0, uint256 amountOut1, address to);
     event Sync(uint112 reserve0, uint112 reserve1);
 
     uint256 public constant MINIMUM_INITIAL_SHARES = 10_000;
+    bytes4 private constant TRANSFER_SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
     string private constant _name = "Pair Shares";
     string private constant _symbol = "PS";
@@ -60,8 +71,8 @@ contract Pair is ERC20 {
         blockTimestampLast = _blockTimestampLast;
     }
 
-    function mint(address to) external returns (uint256 shares) {
-        (uint112 reserve0_, uint112 reserve1_, ) = getReserves();
+    function mint(address to) external nonReentrant returns (uint256 shares) {
+        (uint112 reserve0, uint112 reserve1, ) = getReserves();
 
         // Get balances, which includes anything sent as a part of the
         // transaction
@@ -69,8 +80,8 @@ contract Pair is ERC20 {
         uint256 balance1 = ERC20(token1).balanceOf(address(this));
 
         // Calculate how much was added as part of the transaction
-        uint256 amount0 = balance0 - reserve0_;
-        uint256 amount1 = balance1 - reserve1_;
+        uint256 amount0 = balance0 - reserve0;
+        uint256 amount1 = balance1 - reserve1;
 
         // TODO: Add fee
 
@@ -94,8 +105,8 @@ contract Pair is ERC20 {
             // proportions, maintaining the pool's k ratio.
 
             // Calulcate shares for each amount
-            uint256 l0 = (amount0 * totalSupply_) / reserve0_;
-            uint256 l1 = (amount1 * totalSupply_) / reserve1_;
+            uint256 l0 = (amount0 * totalSupply_) / reserve0;
+            uint256 l1 = (amount1 * totalSupply_) / reserve1;
 
             // Return the minimum
             shares = FixedPointMathLib.min(l0, l1);
@@ -110,7 +121,7 @@ contract Pair is ERC20 {
         _mint(to, shares);
 
         // Update state
-        _update(balance0, balance1, reserve0_, reserve1_);
+        _update(balance0, balance1, reserve0, reserve1);
 
         // TODO: Fee accounting
 
@@ -118,9 +129,109 @@ contract Pair is ERC20 {
         emit Mint(msg.sender, amount0, amount1);
     }
 
+    function swap(uint256 amountOut0, uint256 amountOut1, address to, bytes calldata data) external nonReentrant {
+        // console.log("swap()", amountOut0, amountOut1, string(data));
+
+        // Validate non-zero outs 
+        if (amountOut0 == 0 && amountOut1 == 0) {
+            revert InsufficientOutput();
+        }
+
+        // Validate sufficient reserves
+        (uint112 reserve0, uint112 reserve1,) = getReserves();
+        if (amountOut0 > reserve0 || amountOut1 > reserve1) { // Q: Uniswap contract uses require(<), but seems should be <=
+            revert InsufficientLiquidity();
+        }
+
+        uint256 balance0;
+        uint256 balance1;
+
+        // Optimistically transfer tokens, handle data, and get balances
+        {
+            // internal scope allows temporary variable space to be reused,
+            // to avoid stack-to-deep errors.
+            // TODO: Test if optimer makes these local variables unnecessary.
+            
+            address token0_ = token0;
+            address token1_ = token1;
+            
+            // Validate `to`
+            if (to == token0_ || to == token1_) {
+                revert InvalidTo(to);
+            }
+
+            // Optimistically transfer tokens
+            if (amountOut0 > 0) {
+                _safeTransfer(token0_, to, amountOut0);
+            }
+            if (amountOut1 > 0) {
+                _safeTransfer(token1_, to, amountOut1);
+            }
+
+            // Handle `data`
+            if (data.length > 0) {
+                IUniswapV2Callee(to).uniswapV2Call(msg.sender, amountOut0, amountOut1, data);
+            }
+
+            // Save balances
+            balance0 = ERC20(token0_).balanceOf(address(this));
+            balance1 = ERC20(token1_).balanceOf(address(this));
+        }
+
+        // Calculate "in" amounts
+        uint256 amountIn0 = balance0 > reserve0 - amountOut0 ? balance0 - (reserve0 - amountOut0) : 0;
+        uint256 amountIn1 = balance1 > reserve1 - amountOut1 ? balance1 - (reserve1 - amountOut1) : 0;
+
+        // console.log("balance, reserve, amountOut 0:", balance0, uint256(reserve0), amountOut0);
+        // console.log("balance, reserve, amountOut 1:", balance1, uint256(reserve1), amountOut1);
+
+        // Validate "in" amounts
+        if (amountIn0 == 0 && amountIn1 == 0) {
+            revert InsufficientInput();
+        }
+
+        // Handle fee and validate reserve invariant
+        {
+            // internal scope allows temporary variable space to be reused,
+            // to avoid stack-to-deep errors.
+
+            // Account for fee with integer math
+            // 0.3% = 3 / 1000
+            uint256 adjustedBalance0 = (balance0 * 1000) - (amountIn0 * 3);
+            uint256 adjustedBalance1 = (balance1 * 1000) - (amountIn1 * 3);
+
+            // console.log("aIn0", amountIn0);
+            // console.log("aIn1", amountIn1);
+
+            // console.log("ab0", adjustedBalance0);
+            // console.log("ab1", adjustedBalance1);
+
+            // uint256 ab01 = adjustedBalance0 * adjustedBalance1;
+            // console.log("ab0*ab1=", ab01);
+            // console.log("r0*r1=", uint256(reserve0) * uint256(reserve1) * (1000**2));
+
+            // Validate reserve invariant
+            // reserves need to be multiplied by 1000**2 to account for integer math above
+            if (adjustedBalance0 * adjustedBalance1 < uint256(reserve0) * uint256(reserve1) * (1000**2)) {
+                revert InvalidReserveInvariant();
+            }
+        }
+
+        // Update state
+        _update(balance0, balance1, reserve0, reserve1);
+
+        emit Swap(msg.sender, amountIn0, amountIn1, amountOut0, amountOut1, to);
+    }
+
     /*** PRIVATE FUNCTIONS ***/
 
-    // function _mint() private {}
+    function _safeTransfer(address token, address to, uint value) private {
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(TRANSFER_SELECTOR, to, value));
+        if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
+            revert TransferFailed();
+        }
+        // require(success && (data.length == 0 || abi.decode(data, (bool))), 'UniswapV2: TRANSFER_FAILED');
+    }
 
     function _update(
         uint256 balance0,
@@ -130,8 +241,6 @@ contract Pair is ERC20 {
     ) private {
         // Bounds check balances
         if (balance0 >= type(uint112).max || balance1 >= type(uint112).max) {
-            console.log("_update() balance0:", balance0);
-            console.log("_update() balance1:", balance1);
             revert BalanceOutOfBounds();
         }
 
@@ -163,3 +272,4 @@ contract Pair is ERC20 {
         emit Sync(_reserve0, _reserve1);
     }
 }
+

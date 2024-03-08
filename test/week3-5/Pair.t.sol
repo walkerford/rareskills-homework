@@ -10,6 +10,7 @@ contract TestPair is Test {
     Token token0;
     Token token1;
 
+    uint256 constant INITIAL_TOKENS = 10_000e18;
     uint256 constant INITIAL_TOKEN0 = 1e18;
     uint256 constant INITIAL_TOKEN1 = 4e18;
     uint256 constant INITIAL_SHARES = 2e18; // sqrt(1e18*4e18)=2e18
@@ -19,10 +20,16 @@ contract TestPair is Test {
         token0 = new Token();
         token1 = new Token();
 
-        token0.mint(address(this), INITIAL_TOKEN0);
-        token1.mint(address(this), INITIAL_TOKEN1);
+        token0.mint(address(this), INITIAL_TOKENS);
+        token1.mint(address(this), INITIAL_TOKENS);
 
         pair = new Pair(address(token0), address(token1));
+    }
+    
+    function _addLiquidity(uint256 tokenAmount0, uint256 tokenAmount1) private {
+        token0.transfer(address(pair), tokenAmount0);
+        token1.transfer(address(pair), tokenAmount1);
+        pair.mint(address(this));
     }
 
     function test_Mint() public {
@@ -59,6 +66,38 @@ contract TestPair is Test {
 
         // Mint shares
         pair.mint(address(this));
+    }
+
+    function test_RevertsWhen_SwapWithoutSufficientLiquidity() public {
+        console.log("test_RevertsWhen_SwapWithoutSufficientLiquidity()");
+        uint256[4][7] memory swapTestCases = [
+            [uint256(1e18), 5e18, 10e18, 1_662_497_915_624_478_906],
+            [uint256(1e18), 10e18, 5e18, 453_305_446_940_074_565],
+            [uint256(2e18), 5e18, 10e18, 2_851_015_155_847_869_602],
+            [uint256(2e18), 10e18, 5e18, 831_248_957_812_239_453],
+            [uint256(1e18), 10e18, 10e18, 906_610_893_880_149_131],
+            [uint256(1e18), 100e18, 100e18, 987_158_034_397_061_298],
+            [uint256(1e18), 1000e18, 1000e18, 996_006_981_039_903_216]
+        ];
+        for (uint256 i=0; i<swapTestCases.length; ++i) {
+            setUp();
+            uint256[4] memory swapTestCase = swapTestCases[i];
+            uint256 swapAmount = swapTestCase[0];
+            uint256 tokenAmount0 = swapTestCase[1];
+            uint256 tokenAmount1 = swapTestCase[2];
+            uint256 expectedOutputAmount = swapTestCase[3];
+        
+            _addLiquidity(tokenAmount0, tokenAmount1);
+            token0.transfer(address(pair), swapAmount);
+            
+            // Expect failure
+            vm.expectRevert(abi.encodeWithSelector(Pair.InvalidReserveInvariant.selector));
+            pair.swap(0, expectedOutputAmount + 1, address(this), "");
+            
+            // Expect success
+            pair.swap(0, expectedOutputAmount, address(this), "");
+        }
+
     }
 }
 
