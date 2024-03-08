@@ -68,9 +68,8 @@ contract TestPair is Test {
         pair.mint(address(this));
     }
 
-    function test_RevertsWhen_SwapWithoutSufficientLiquidity() public {
-        console.log("test_RevertsWhen_SwapWithoutSufficientLiquidity()");
-        uint256[4][7] memory swapTestCases = [
+    function test_SwapTestCases() public {
+        uint256[4][7] memory testCases = [
             [uint256(1e18), 5e18, 10e18, 1_662_497_915_624_478_906],
             [uint256(1e18), 10e18, 5e18, 453_305_446_940_074_565],
             [uint256(2e18), 5e18, 10e18, 2_851_015_155_847_869_602],
@@ -79,13 +78,13 @@ contract TestPair is Test {
             [uint256(1e18), 100e18, 100e18, 987_158_034_397_061_298],
             [uint256(1e18), 1000e18, 1000e18, 996_006_981_039_903_216]
         ];
-        for (uint256 i=0; i<swapTestCases.length; ++i) {
+        for (uint256 i=0; i<testCases.length; ++i) {
             setUp();
-            uint256[4] memory swapTestCase = swapTestCases[i];
-            uint256 swapAmount = swapTestCase[0];
-            uint256 tokenAmount0 = swapTestCase[1];
-            uint256 tokenAmount1 = swapTestCase[2];
-            uint256 expectedOutputAmount = swapTestCase[3];
+            uint256[4] memory testCase = testCases[i];
+            uint256 swapAmount = testCase[0];
+            uint256 tokenAmount0 = testCase[1];
+            uint256 tokenAmount1 = testCase[2];
+            uint256 expectedOutputAmount = testCase[3];
         
             _addLiquidity(tokenAmount0, tokenAmount1);
             token0.transfer(address(pair), swapAmount);
@@ -97,7 +96,108 @@ contract TestPair is Test {
             // Expect success
             pair.swap(0, expectedOutputAmount, address(this), "");
         }
+    }
 
+    function test_OptimisticTestCases() public {
+        uint256[4][4] memory testCases = [
+            [uint256(997_000_000_000_000_000), 5e18, 10e18, 1e18],
+            [uint256(997_000_000_000_000_000), 10e18, 5e18, 1e18],
+            [uint256(997_000_000_000_000_000), 5e18, 5e18, 1e18],
+            [uint256(1e18), 5e18, 5e18, 1_003_009_027_081_243_732]
+        ];
+        for (uint256 i=0; i<testCases.length; ++i) {
+            setUp();
+            uint256[4] memory testCase = testCases[i];
+            uint256 outputAmount = testCase[0];
+            uint256 tokenAmount0 = testCase[1];
+            uint256 tokenAmount1 = testCase[2];
+            uint256 inputAmount = testCase[3];
+
+            _addLiquidity(tokenAmount0, tokenAmount1);
+            token0.transfer(address(pair), inputAmount);
+
+            vm.expectRevert(abi.encodeWithSelector(Pair.InvalidReserveInvariant.selector));
+            pair.swap(outputAmount+1,0, address(this), "");
+
+            pair.swap(outputAmount,0, address(this), "");
+        }
+    }
+
+    function test_SwapToken0() public {
+        uint256 tokenAmount0 = 5e18;
+        uint256 tokenAmount1 = 10e18;
+        _addLiquidity(tokenAmount0, tokenAmount1);
+
+        uint256 swapAmount = 1e18;
+        uint256 expectedOutputAmount = 1_662_497_915_624_478_906;
+        token0.transfer(address(pair), swapAmount);
+        
+        // Expect transfer event from token1
+        vm.expectEmit(true, true, true, true, address(token1));
+        emit ERC20.Transfer(
+            address(pair),
+            address(this),
+            expectedOutputAmount
+        );
+
+        // Expect Sync event from updating balances
+        vm.expectEmit(true, false, false, true, address(pair));
+        emit Pair.Sync(uint112(tokenAmount0 + swapAmount), uint112(tokenAmount1 - expectedOutputAmount));
+
+        // Expect Swap event from swapping tokens
+        vm.expectEmit(true, true, false, true, address(pair));
+        emit Pair.Swap(address(this), swapAmount, 0, 0, expectedOutputAmount, address(this));
+
+        pair.swap(0,expectedOutputAmount, address(this), "");
+
+        (uint256 reserve0, uint256 reserve1,) = pair.getReserves();
+        assertEq(reserve0, tokenAmount0 + swapAmount);
+        assertEq(reserve1, tokenAmount1 - expectedOutputAmount);
+        assertEq(token0.balanceOf(address(pair)), tokenAmount0 + swapAmount);
+        assertEq(token1.balanceOf(address(pair)), tokenAmount1 - expectedOutputAmount);
+        uint256 totalSupply0 = token0.totalSupply();
+        uint256 totalSupply1 = token1.totalSupply();
+        assertEq(token0.balanceOf(address(this)), totalSupply0 - tokenAmount0 - swapAmount);
+        assertEq(token1.balanceOf(address(this)), totalSupply1 - tokenAmount1 + expectedOutputAmount);
+
+    }
+
+    function test_SwapToken1() public {
+        uint256 tokenAmount0 = 5e18;
+        uint256 tokenAmount1 = 10e18;
+        _addLiquidity(tokenAmount0, tokenAmount1);
+
+        uint256 swapAmount = 1e18;
+        uint256 expectedOutputAmount = 453_305_446_940_074_565;
+        token1.transfer(address(pair), swapAmount);
+        
+        // Expect transfer event from token0
+        vm.expectEmit(true, true, true, true, address(token0));
+        emit ERC20.Transfer(
+            address(pair),
+            address(this),
+            expectedOutputAmount
+        );
+
+        // Expect Sync event from updating balances
+        vm.expectEmit(true, false, false, true, address(pair));
+        emit Pair.Sync(uint112(tokenAmount0 - expectedOutputAmount), uint112(tokenAmount1 + swapAmount));
+
+        // Expect Swap event from swapping tokens
+        vm.expectEmit(true, true, false, true, address(pair));
+        emit Pair.Swap(address(this), 0, swapAmount, expectedOutputAmount, 0, address(this));
+
+        pair.swap(expectedOutputAmount, 0, address(this), "");
+
+        (uint256 reserve0, uint256 reserve1,) = pair.getReserves();
+        assertEq(reserve0, tokenAmount0 - expectedOutputAmount);
+        assertEq(reserve1, tokenAmount1 + swapAmount);
+        assertEq(token0.balanceOf(address(pair)), tokenAmount0 - expectedOutputAmount);
+        assertEq(token1.balanceOf(address(pair)), tokenAmount1 + swapAmount);
+        uint256 totalSupply0 = token0.totalSupply();
+        uint256 totalSupply1 = token1.totalSupply();
+        assertEq(token0.balanceOf(address(this)), totalSupply0 - tokenAmount0 + expectedOutputAmount);
+        assertEq(token1.balanceOf(address(this)), totalSupply1 - tokenAmount1 - swapAmount);
     }
 }
 

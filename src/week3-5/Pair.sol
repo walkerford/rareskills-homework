@@ -25,7 +25,7 @@ contract Pair is ERC20, ReentrancyGuard {
     error TransferFailed();
 
     event Mint(address indexed to, uint256 amount0, uint256 amount1);
-    event Swap(address from, uint256 amountIn0, uint256 amountIn1, uint256 amountOut0, uint256 amountOut1, address to);
+    event Swap(address indexed from, uint256 amountIn0, uint256 amountIn1, uint256 amountOut0, uint256 amountOut1, address indexed to);
     event Sync(uint112 reserve0, uint112 reserve1);
 
     uint256 public constant MINIMUM_INITIAL_SHARES = 10_000;
