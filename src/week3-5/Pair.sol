@@ -9,8 +9,15 @@ import "solady/utils/FixedPointMathLib.sol";
 import "./Factory.sol";
 import "./UQ112x112.sol";
 
+uint256 constant MINIMUM_INITIAL_SHARES = 1e3;
+
 interface IUniswapV2Callee {
-    function uniswapV2Call(address sender, uint amount0, uint amount1, bytes calldata data) external;
+    function uniswapV2Call(
+        address sender,
+        uint amount0,
+        uint amount1,
+        bytes calldata data
+    ) external;
 }
 
 contract Pair is ERC20, ReentrancyGuard {
@@ -18,18 +25,32 @@ contract Pair is ERC20, ReentrancyGuard {
 
     error BalanceOutOfBounds();
     error InsufficientLiquidity();
+    error InsufficientLiquidityBurned();
     error InsufficientInput();
     error InsufficientOutput();
     error InvalidReserveInvariant();
     error InvalidTo(address to);
     error TransferFailed();
 
+    event Burn(
+        address indexed from,
+        uint256 amount0,
+        uint256 amount1,
+        address indexed to
+    );
     event Mint(address indexed to, uint256 amount0, uint256 amount1);
-    event Swap(address indexed from, uint256 amountIn0, uint256 amountIn1, uint256 amountOut0, uint256 amountOut1, address indexed to);
+    event Swap(
+        address indexed from,
+        uint256 amountIn0,
+        uint256 amountIn1,
+        uint256 amountOut0,
+        uint256 amountOut1,
+        address indexed to
+    );
     event Sync(uint112 reserve0, uint112 reserve1);
 
-    uint256 public constant MINIMUM_INITIAL_SHARES = 10_000;
-    bytes4 private constant TRANSFER_SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
+    bytes4 private constant TRANSFER_SELECTOR =
+        bytes4(keccak256(bytes("transfer(address,uint256)")));
 
     string private constant _name = "Pair Shares";
     string private constant _symbol = "PS";
@@ -69,6 +90,36 @@ contract Pair is ERC20, ReentrancyGuard {
         reserve0 = _reserve0;
         reserve1 = _reserve1;
         blockTimestampLast = _blockTimestampLast;
+    }
+
+    function burn(
+        address to
+    ) external nonReentrant returns (uint256 amount0, uint256 amount1) {
+        (uint112 reserve0, uint112 reserve1, ) = getReserves();
+        address token0_ = token0;
+        address token1_ = token1;
+        uint256 balance0 = ERC20(token0_).balanceOf(address(this));
+        uint256 balance1 = ERC20(token1_).balanceOf(address(this));
+        uint256 shares = balanceOf(address(this));
+
+        // TODO: fee
+
+        uint256 totalSupply_ = totalSupply();
+        amount0 = (shares * balance0) / totalSupply_;
+        amount1 = (shares * balance1) / totalSupply_;
+        if (amount0 == 0 && amount1 == 1) {
+            revert InsufficientLiquidityBurned();
+        }
+
+        _burn(address(this), shares);
+        _safeTransfer(token0_, to, amount0);
+        _safeTransfer(token1_, to, amount1);
+        balance0 = ERC20(token0_).balanceOf(address(this));
+        balance1 = ERC20(token1_).balanceOf(address(this));
+
+        _update(balance0, balance1, reserve0, reserve1);
+        // TODO: Update klast if using fee
+        emit Burn(msg.sender, amount0, amount1, to);
     }
 
     function mint(address to) external nonReentrant returns (uint256 shares) {
@@ -129,17 +180,23 @@ contract Pair is ERC20, ReentrancyGuard {
         emit Mint(msg.sender, amount0, amount1);
     }
 
-    function swap(uint256 amountOut0, uint256 amountOut1, address to, bytes calldata data) external nonReentrant {
+    function swap(
+        uint256 amountOut0,
+        uint256 amountOut1,
+        address to,
+        bytes calldata data
+    ) external nonReentrant {
         // console.log("swap()", amountOut0, amountOut1, string(data));
 
-        // Validate non-zero outs 
+        // Validate non-zero outs
         if (amountOut0 == 0 && amountOut1 == 0) {
             revert InsufficientOutput();
         }
 
         // Validate sufficient reserves
-        (uint112 reserve0, uint112 reserve1,) = getReserves();
-        if (amountOut0 > reserve0 || amountOut1 > reserve1) { // Q: Uniswap contract uses require(<), but seems should be <=
+        (uint112 reserve0, uint112 reserve1, ) = getReserves();
+        if (amountOut0 > reserve0 || amountOut1 > reserve1) {
+            // Q: Uniswap contract uses require(<), but seems should be <=
             revert InsufficientLiquidity();
         }
 
@@ -151,10 +208,10 @@ contract Pair is ERC20, ReentrancyGuard {
             // internal scope allows temporary variable space to be reused,
             // to avoid stack-to-deep errors.
             // TODO: Test if optimer makes these local variables unnecessary.
-            
+
             address token0_ = token0;
             address token1_ = token1;
-            
+
             // Validate `to`
             if (to == token0_ || to == token1_) {
                 revert InvalidTo(to);
@@ -170,7 +227,12 @@ contract Pair is ERC20, ReentrancyGuard {
 
             // Handle `data`
             if (data.length > 0) {
-                IUniswapV2Callee(to).uniswapV2Call(msg.sender, amountOut0, amountOut1, data);
+                IUniswapV2Callee(to).uniswapV2Call(
+                    msg.sender,
+                    amountOut0,
+                    amountOut1,
+                    data
+                );
             }
 
             // Save balances
@@ -179,8 +241,12 @@ contract Pair is ERC20, ReentrancyGuard {
         }
 
         // Calculate "in" amounts
-        uint256 amountIn0 = balance0 > reserve0 - amountOut0 ? balance0 - (reserve0 - amountOut0) : 0;
-        uint256 amountIn1 = balance1 > reserve1 - amountOut1 ? balance1 - (reserve1 - amountOut1) : 0;
+        uint256 amountIn0 = balance0 > reserve0 - amountOut0
+            ? balance0 - (reserve0 - amountOut0)
+            : 0;
+        uint256 amountIn1 = balance1 > reserve1 - amountOut1
+            ? balance1 - (reserve1 - amountOut1)
+            : 0;
 
         // console.log("balance, reserve, amountOut 0:", balance0, uint256(reserve0), amountOut0);
         // console.log("balance, reserve, amountOut 1:", balance1, uint256(reserve1), amountOut1);
@@ -212,7 +278,10 @@ contract Pair is ERC20, ReentrancyGuard {
 
             // Validate reserve invariant
             // reserves need to be multiplied by 1000**2 to account for integer math above
-            if (adjustedBalance0 * adjustedBalance1 < uint256(reserve0) * uint256(reserve1) * (1000**2)) {
+            if (
+                adjustedBalance0 * adjustedBalance1 <
+                uint256(reserve0) * uint256(reserve1) * (1000 ** 2)
+            ) {
                 revert InvalidReserveInvariant();
             }
         }
@@ -226,7 +295,9 @@ contract Pair is ERC20, ReentrancyGuard {
     /*** PRIVATE FUNCTIONS ***/
 
     function _safeTransfer(address token, address to, uint value) private {
-        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(TRANSFER_SELECTOR, to, value));
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(TRANSFER_SELECTOR, to, value)
+        );
         if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
             revert TransferFailed();
         }
@@ -272,4 +343,3 @@ contract Pair is ERC20, ReentrancyGuard {
         emit Sync(_reserve0, _reserve1);
     }
 }
-
