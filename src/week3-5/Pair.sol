@@ -188,8 +188,7 @@ contract Pair is ERC20, ReentrancyGuard {
     function swap(
         uint256 amountOut0,
         uint256 amountOut1,
-        address to,
-        bytes calldata data
+        address to
     ) external nonReentrant {
         // console.log("swap()", amountOut0, amountOut1, string(data));
 
@@ -205,15 +204,15 @@ contract Pair is ERC20, ReentrancyGuard {
             revert InsufficientLiquidity();
         }
 
-        uint256 balance0;
+uint256 balance0;
         uint256 balance1;
 
-        // Optimistically transfer tokens, handle data, and get balances
+        // Transfer tokens, handle data, and get balances
         {
             // internal scope allows temporary variable space to be reused,
             // to avoid stack-to-deep errors.
+        
             // TODO: Test if optimizer makes these local variables unnecessary.
-
             address token0_ = token0;
             address token1_ = token1;
 
@@ -222,22 +221,12 @@ contract Pair is ERC20, ReentrancyGuard {
                 revert InvalidTo(to);
             }
 
-            // Optimistically transfer tokens
+            // Transfer tokens
             if (amountOut0 > 0) {
                 _safeTransfer(token0_, to, amountOut0);
             }
             if (amountOut1 > 0) {
                 _safeTransfer(token1_, to, amountOut1);
-            }
-
-            // Handle `data`
-            if (data.length > 0) {
-                IUniswapV2Callee(to).uniswapV2Call(
-                    msg.sender,
-                    amountOut0,
-                    amountOut1,
-                    data
-                );
             }
 
             // Save balances

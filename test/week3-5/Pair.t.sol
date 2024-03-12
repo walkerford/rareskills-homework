@@ -155,10 +155,10 @@ contract TestPair is Test {
             vm.expectRevert(
                 abi.encodeWithSelector(Pair.InvalidReserveInvariant.selector)
             );
-            pair.swap(0, expectedOutputAmount + 1, address(this), "");
+            pair.swap(0, expectedOutputAmount + 1, address(this));
 
             // Expect success
-            pair.swap(0, expectedOutputAmount, address(this), "");
+            pair.swap(0, expectedOutputAmount, address(this));
         }
     }
 
@@ -183,9 +183,9 @@ contract TestPair is Test {
             vm.expectRevert(
                 abi.encodeWithSelector(Pair.InvalidReserveInvariant.selector)
             );
-            pair.swap(outputAmount + 1, 0, address(this), "");
+            pair.swap(outputAmount + 1, 0, address(this));
 
-            pair.swap(outputAmount, 0, address(this), "");
+            pair.swap(outputAmount, 0, address(this));
         }
     }
 
@@ -220,7 +220,7 @@ contract TestPair is Test {
             address(this)
         );
 
-        pair.swap(0, expectedOutputAmount, address(this), "");
+        pair.swap(0, expectedOutputAmount, address(this));
 
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
         assertEq(reserve0, tokenAmount0 + swapAmount);
@@ -273,7 +273,7 @@ contract TestPair is Test {
             address(this)
         );
 
-        pair.swap(expectedOutputAmount, 0, address(this), "");
+        pair.swap(expectedOutputAmount, 0, address(this));
 
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
         assertEq(reserve0, tokenAmount0 - expectedOutputAmount);
