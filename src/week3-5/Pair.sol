@@ -104,10 +104,10 @@ contract Pair is ERC20, ReentrancyGuard {
 
         // TODO: fee
 
-        uint256 totalSupply_ = totalSupply();
-        amount0 = (shares * balance0) / totalSupply_;
-        amount1 = (shares * balance1) / totalSupply_;
-        if (amount0 == 0 && amount1 == 1) {
+        uint256 totalShares = totalSupply();
+        amount0 = (shares * balance0) / totalShares;
+        amount1 = (shares * balance1) / totalShares;
+        if (amount0 == 0 && amount1 == 0) {
             revert InsufficientLiquidityBurned();
         }
 
@@ -131,16 +131,21 @@ contract Pair is ERC20, ReentrancyGuard {
         uint256 balance1 = ERC20(token1).balanceOf(address(this));
 
         // Calculate how much was added as part of the transaction
-        uint256 amount0 = balance0 - reserve0;
-        uint256 amount1 = balance1 - reserve1;
+        uint256 amount0;
+        uint256 amount1;
+        unchecked {
+            // balance will never be less than than reserve
+            amount0 = balance0 - reserve0;
+            amount1 = balance1 - reserve1;
+        }
 
         // TODO: Add fee
 
-        uint256 totalSupply_ = totalSupply();
+        uint256 totalShares = totalSupply();
 
-        // Compute shares that should be minted
-        if (totalSupply_ == 0) {
-            // Initial case burns an amount of shares
+        // Compute shares that should be minted initially
+        if (totalShares == 0) {
+            // Initial case burns a small fixed amount of shares
 
             // Calulate shares. Subtraction bounds check will catch if not
             // enough liquity was provided
@@ -156,8 +161,8 @@ contract Pair is ERC20, ReentrancyGuard {
             // proportions, maintaining the pool's k ratio.
 
             // Calulcate shares for each amount
-            uint256 l0 = (amount0 * totalSupply_) / reserve0;
-            uint256 l1 = (amount1 * totalSupply_) / reserve1;
+            uint256 l0 = (amount0 * totalShares) / reserve0;
+            uint256 l1 = (amount1 * totalShares) / reserve1;
 
             // Return the minimum
             shares = FixedPointMathLib.min(l0, l1);
@@ -195,8 +200,8 @@ contract Pair is ERC20, ReentrancyGuard {
 
         // Validate sufficient reserves
         (uint112 reserve0, uint112 reserve1, ) = getReserves();
-        if (amountOut0 > reserve0 || amountOut1 > reserve1) {
-            // Q: Uniswap contract uses require(<), but seems should be <=
+        // Reserves should never go to zero or that will break k value
+        if (amountOut0 >= reserve0 || amountOut1 >= reserve1) {
             revert InsufficientLiquidity();
         }
 
@@ -207,7 +212,7 @@ contract Pair is ERC20, ReentrancyGuard {
         {
             // internal scope allows temporary variable space to be reused,
             // to avoid stack-to-deep errors.
-            // TODO: Test if optimer makes these local variables unnecessary.
+            // TODO: Test if optimizer makes these local variables unnecessary.
 
             address token0_ = token0;
             address token1_ = token1;
@@ -263,23 +268,23 @@ contract Pair is ERC20, ReentrancyGuard {
 
             // Account for fee with integer math
             // 0.3% = 3 / 1000
-            uint256 adjustedBalance0 = (balance0 * 1000) - (amountIn0 * 3);
-            uint256 adjustedBalance1 = (balance1 * 1000) - (amountIn1 * 3);
+            uint256 balanceLessFee0 = (balance0 * 1000) - (amountIn0 * 3);
+            uint256 balanceLessFee1 = (balance1 * 1000) - (amountIn1 * 3);
 
             // console.log("aIn0", amountIn0);
             // console.log("aIn1", amountIn1);
 
-            // console.log("ab0", adjustedBalance0);
-            // console.log("ab1", adjustedBalance1);
+            // console.log("ab0", balanceLessFee0);
+            // console.log("ab1", balanceLessFee1);
 
-            // uint256 ab01 = adjustedBalance0 * adjustedBalance1;
+            // uint256 ab01 = balanceLessFee0 * balanceLessFee1;
             // console.log("ab0*ab1=", ab01);
             // console.log("r0*r1=", uint256(reserve0) * uint256(reserve1) * (1000**2));
 
             // Validate reserve invariant
             // reserves need to be multiplied by 1000**2 to account for integer math above
             if (
-                adjustedBalance0 * adjustedBalance1 <
+                balanceLessFee0 * balanceLessFee1 <
                 uint256(reserve0) * uint256(reserve1) * (1000 ** 2)
             ) {
                 revert InvalidReserveInvariant();
