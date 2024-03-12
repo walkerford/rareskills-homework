@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import "forge-std/console.sol";
 
+import "openzeppelin-contracts/contracts/interfaces/IERC3156.sol";
 import "solady/tokens/ERC20.sol";
 import "solady/utils/ReentrancyGuard.sol";
 import "solady/utils/FixedPointMathLib.sol";
@@ -10,6 +11,7 @@ import "./Factory.sol";
 import "./UQ112x112.sol";
 
 uint256 constant MINIMUM_INITIAL_SHARES = 1e3;
+bytes32 constant SELECTOR_ON_FLASH_LOAN = keccak256("ERC3156FlashBorrower.onFlashLoan");
 
 interface IUniswapV2Callee {
     function uniswapV2Call(
@@ -20,17 +22,21 @@ interface IUniswapV2Callee {
     ) external;
 }
 
-contract Pair is ERC20, ReentrancyGuard {
+contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
     using UQ112x112 for uint224;
 
     error BalanceOutOfBounds();
+    error FailureToRepay();
+    error InsufficientFlashLoanLiquidity(uint256 amount);
     error InsufficientLiquidity();
     error InsufficientLiquidityBurned();
     error InsufficientInput();
     error InsufficientOutput();
+    error InvalidFlashLoanReceiver();
     error InvalidReserveInvariant();
     error InvalidTo(address to);
     error TransferFailed();
+    error UnsupportedToken(address token);
 
     event Burn(
         address indexed from,
@@ -285,6 +291,70 @@ uint256 balance0;
 
         emit Swap(msg.sender, amountIn0, amountIn1, amountOut0, amountOut1, to);
     }
+
+    /**
+     * @param token that will be loaned
+     * @dev does not revert, returns 0 in case of unsupported token
+     */
+    function maxFlashLoan(address token) public view returns(uint256 amount) {
+        // Validate token
+        if (token != token0 && token != token1) {
+            amount = 0;
+        } else {
+            // Calculate amount
+            // Q: Can we lend out the entire token balance, or do we need to keep at least 1?
+            amount = ERC20(token).balanceOf(address(this));
+        }
+    }
+
+    /**
+     * 
+     * @param token that will be loaned
+     * @param amount that will be loaned
+     * @dev reverts when passed an unsupported token
+     */
+    function flashFee(address token, uint256 amount) public view returns(uint256 fee) {
+        // Validate token
+        if (token != token0 && token != token1) {
+            revert UnsupportedToken(token);
+        }
+
+        // Calculate fee
+        fee = (amount * 3) / 1000;
+    }
+
+    function flashLoan(
+        IERC3156FlashBorrower receiver, 
+        address token, 
+        uint256 amount, 
+        bytes calldata data
+    ) external returns(bool) {
+        // Validate amount (also validates token)
+        if (amount > maxFlashLoan(token)) {
+            revert InsufficientFlashLoanLiquidity(amount);
+        }
+
+        uint256 fee = flashFee(token, amount);
+        uint256 balanceBefore = ERC20(token).balanceOf(address(this));
+
+        // Transfer loan
+        ERC20(token).transfer(address(receiver), amount);
+
+        // Callback
+        bytes32 result = receiver.onFlashLoan(msg.sender, token, amount, fee, data);
+        if (result != SELECTOR_ON_FLASH_LOAN) {
+            revert InvalidFlashLoanReceiver();
+        }
+
+        // Check repayment
+        uint256 balanceAfter = ERC20(token).balanceOf(address(this));
+        if (balanceAfter < balanceBefore + fee) {
+            revert FailureToRepay();
+        }
+
+        return true;
+    }
+
 
     /*** PRIVATE FUNCTIONS ***/
 
