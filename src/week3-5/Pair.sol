@@ -11,7 +11,9 @@ import "./Factory.sol";
 import "./UQ112x112.sol";
 
 uint256 constant MINIMUM_INITIAL_SHARES = 1e3;
-bytes32 constant SELECTOR_ON_FLASH_LOAN = keccak256("ERC3156FlashBorrower.onFlashLoan");
+bytes32 constant SELECTOR_ON_FLASH_LOAN = keccak256(
+    "ERC3156FlashBorrower.onFlashLoan"
+);
 
 interface IUniswapV2Callee {
     function uniswapV2Call(
@@ -35,6 +37,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
     error InvalidFlashLoanReceiver();
     error InvalidReserveInvariant();
     error InvalidTo(address to);
+    error MintingSlippageNotMet();
     error TransferFailed();
     error UnsupportedToken(address token);
 
@@ -128,7 +131,10 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
-    function mint(address to) external nonReentrant returns (uint256 shares) {
+    function mint(
+        address to,
+        uint256 minimumShares
+    ) external nonReentrant returns (uint256 shares) {
         (uint112 reserve0, uint112 reserve1, ) = getReserves();
 
         // Get balances, which includes anything sent as a part of the
@@ -179,6 +185,11 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
             revert InsufficientLiquidity();
         }
 
+        // Protect against slippage with minimumShares
+        if (shares < minimumShares) {
+            revert MintingSlippageNotMet();
+        }
+
         // Mint shares
         _mint(to, shares);
 
@@ -210,14 +221,14 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
             revert InsufficientLiquidity();
         }
 
-uint256 balance0;
+        uint256 balance0;
         uint256 balance1;
 
         // Transfer tokens, handle data, and get balances
         {
             // internal scope allows temporary variable space to be reused,
             // to avoid stack-to-deep errors.
-        
+
             // TODO: Test if optimizer makes these local variables unnecessary.
             address token0_ = token0;
             address token1_ = token1;
@@ -296,7 +307,7 @@ uint256 balance0;
      * @param token that will be loaned
      * @dev does not revert, returns 0 in case of unsupported token
      */
-    function maxFlashLoan(address token) public view returns(uint256 amount) {
+    function maxFlashLoan(address token) public view returns (uint256 amount) {
         // Validate token
         if (token != token0 && token != token1) {
             amount = 0;
@@ -308,12 +319,15 @@ uint256 balance0;
     }
 
     /**
-     * 
+     *
      * @param token that will be loaned
      * @param amount that will be loaned
      * @dev reverts when passed an unsupported token
      */
-    function flashFee(address token, uint256 amount) public view returns(uint256 fee) {
+    function flashFee(
+        address token,
+        uint256 amount
+    ) public view returns (uint256 fee) {
         // Validate token
         if (token != token0 && token != token1) {
             revert UnsupportedToken(token);
@@ -324,11 +338,11 @@ uint256 balance0;
     }
 
     function flashLoan(
-        IERC3156FlashBorrower receiver, 
-        address token, 
-        uint256 amount, 
+        IERC3156FlashBorrower receiver,
+        address token,
+        uint256 amount,
         bytes calldata data
-    ) external returns(bool) {
+    ) external returns (bool) {
         // Validate amount (also validates token)
         if (amount > maxFlashLoan(token)) {
             revert InsufficientFlashLoanLiquidity(amount);
@@ -341,7 +355,13 @@ uint256 balance0;
         ERC20(token).transfer(address(receiver), amount);
 
         // Callback
-        bytes32 result = receiver.onFlashLoan(msg.sender, token, amount, fee, data);
+        bytes32 result = receiver.onFlashLoan(
+            msg.sender,
+            token,
+            amount,
+            fee,
+            data
+        );
         if (result != SELECTOR_ON_FLASH_LOAN) {
             revert InvalidFlashLoanReceiver();
         }
@@ -354,7 +374,6 @@ uint256 balance0;
 
         return true;
     }
-
 
     /*** PRIVATE FUNCTIONS ***/
 

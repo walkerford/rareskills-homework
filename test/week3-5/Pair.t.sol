@@ -32,7 +32,7 @@ contract TestPair is Test {
     function _addLiquidity(uint256 tokenAmount0, uint256 tokenAmount1) private {
         token0.transfer(address(pair), tokenAmount0);
         token1.transfer(address(pair), tokenAmount1);
-        pair.mint(address(this));
+        pair.mint(address(this), 0);
     }
 
     function test_Burn() public {
@@ -130,7 +130,20 @@ contract TestPair is Test {
         emit Pair.Mint(address(this), INITIAL_TOKEN0, INITIAL_TOKEN1);
 
         // Mint shares
-        pair.mint(address(this));
+        pair.mint(address(this), 0);
+    }
+
+    function test_ExpectsRevert_MintShares() external {
+        // Transfer tokens to Pair contract
+        token0.transfer(address(pair), INITIAL_SHARES);
+        token1.transfer(address(pair), INITIAL_SHARES);
+
+        // Mint shares, but expect a revert since slippage is not met, because
+        // minimum shares will be taken out
+        vm.expectRevert(
+            abi.encodeWithSelector(Pair.MintingSlippageNotMet.selector)
+        );
+        pair.mint(address(this), INITIAL_SHARES);
     }
 
     function test_SwapTestCases() public {
@@ -313,7 +326,9 @@ contract TestPair is Test {
         _addLiquidity(INITIAL_TOKENS, INITIAL_TOKENS);
 
         // Test revert
-        vm.expectRevert(abi.encodeWithSelector(Pair.UnsupportedToken.selector, address(0)));
+        vm.expectRevert(
+            abi.encodeWithSelector(Pair.UnsupportedToken.selector, address(0))
+        );
         pair.flashFee(address(0), LOAN_AMOUNT);
 
         // Test success
@@ -328,16 +343,28 @@ contract TestPair is Test {
         FlashBorrowerBadRepayment noRepayment = new FlashBorrowerBadRepayment();
 
         // Test unsupported token
-        vm.expectRevert(abi.encodeWithSelector(Pair.InsufficientFlashLoanLiquidity.selector, LOAN_AMOUNT));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Pair.InsufficientFlashLoanLiquidity.selector,
+                LOAN_AMOUNT
+            )
+        );
         pair.flashLoan(goodBorrower, address(0), LOAN_AMOUNT, "");
 
         // Test insufficient flash loan liquidity
         uint256 tooMuch = LOAN_AMOUNT + 1;
-        vm.expectRevert(abi.encodeWithSelector(Pair.InsufficientFlashLoanLiquidity.selector, tooMuch));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Pair.InsufficientFlashLoanLiquidity.selector,
+                tooMuch
+            )
+        );
         pair.flashLoan(goodBorrower, address(token0), tooMuch, "");
 
         // Test invalid callback response
-        vm.expectRevert(abi.encodeWithSelector(Pair.InvalidFlashLoanReceiver.selector));
+        vm.expectRevert(
+            abi.encodeWithSelector(Pair.InvalidFlashLoanReceiver.selector)
+        );
         pair.flashLoan(badReturnValue, address(token0), LOAN_AMOUNT, "");
 
         // Test failure to repay
@@ -379,12 +406,12 @@ contract FlashBorrower is IERC3156FlashBorrower {
     uint256 public balanceDuringLoan;
 
     function onFlashLoan(
-        address initiator_, 
-        address token_, 
-        uint256 amount_, 
-        uint256 fee_, 
+        address initiator_,
+        address token_,
+        uint256 amount_,
+        uint256 fee_,
         bytes calldata data_
-    ) external returns(bytes32) {
+    ) external returns (bytes32) {
         initiator = initiator_;
         token = token_;
         amount = amount_;
@@ -398,22 +425,22 @@ contract FlashBorrower is IERC3156FlashBorrower {
 
 contract FlashBorrowerBadReturnValue is IERC3156FlashBorrower {
     function onFlashLoan(
-        address initiator, 
-        address token, 
-        uint256 amount, 
-        uint256 fee, 
+        address initiator,
+        address token,
+        uint256 amount,
+        uint256 fee,
         bytes calldata data
-    ) external returns(bytes32) {}
+    ) external returns (bytes32) {}
 }
 
 contract FlashBorrowerBadRepayment is IERC3156FlashBorrower {
     function onFlashLoan(
-        address, 
-        address token, 
-        uint256 amount, 
-        uint256, 
+        address,
+        address token,
+        uint256 amount,
+        uint256,
         bytes calldata
-    ) external returns(bytes32) {
+    ) external returns (bytes32) {
         ERC20(token).transfer(msg.sender, amount); // fails to provide fee
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
