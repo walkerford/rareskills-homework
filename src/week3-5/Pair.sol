@@ -28,6 +28,8 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
     using UQ112x112 for uint224;
 
     error BalanceOutOfBounds();
+    error BurnSlippageNotMet();
+    // error BurnSlippageTokenMismatch();
     error FailureToRepay();
     error InsufficientFlashLoanLiquidity(uint256 amount);
     error InsufficientLiquidity();
@@ -101,8 +103,22 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         blockTimestampLast = _blockTimestampLast;
     }
 
+    /**
+     * Burns lp shares and releases tokens to sender.  The token parameters
+       helps user ensure they pick the right quantities when specifying slippage
+       protection.  Slippage is just a matter of specifying the minimum number
+       of tokens the user will accept from the burn.
+     * @param minimumTokenA Minimum amount of tokenA to produce from burn, used
+       for slippage
+     * @param minimumTokenB Minimum amount of tokenB to produce from burn, used
+       for slippage
+     */
     function burn(
-        address to
+        address to,
+        // address tokenA,
+        // address tokenB,
+        uint256 minimumTokenA,
+        uint256 minimumTokenB
     ) external nonReentrant returns (uint256 amount0, uint256 amount1) {
         (uint112 reserve0, uint112 reserve1, ) = getReserves();
         address token0_ = token0;
@@ -111,6 +127,20 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         uint256 balance1 = ERC20(token1_).balanceOf(address(this));
         uint256 shares = balanceOf(address(this));
 
+        // Validate slippage tokens match tokens in pair
+        // Swap A & B if necessary to match token 0 & 1
+        // if (tokenA != token0_) {
+        //     if (tokenA != token1_ || tokenB != token0_) {
+        //         // Either token A or B didn't match
+        //         revert BurnSlippageTokenMismatch();
+        //     }
+
+        //     (minimumTokenA, minimumTokenB) = (minimumTokenB, minimumTokenA);
+        // } else if (tokenB != token1_) {
+        //     // Token B doesn't match
+        //     revert BurnSlippageTokenMismatch();
+        // }
+
         // TODO: fee
 
         uint256 totalShares = totalSupply();
@@ -118,6 +148,11 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         amount1 = (shares * balance1) / totalShares;
         if (amount0 == 0 && amount1 == 0) {
             revert InsufficientLiquidityBurned();
+        }
+
+        // Validate slippage
+        if (amount0 < minimumTokenA || amount1 < minimumTokenB) {
+            revert BurnSlippageNotMet();
         }
 
         _burn(address(this), shares);

@@ -74,7 +74,7 @@ contract TestPair is Test {
             address(this)
         );
 
-        pair.burn(address(this));
+        pair.burn(address(this), 0, 0);
 
         // This contract should hold no more shares
         assertEq(pair.balanceOf(address(this)), 0);
@@ -94,6 +94,37 @@ contract TestPair is Test {
         assertEq(
             token1.balanceOf(address(this)),
             totalSupply1 - MINIMUM_INITIAL_SHARES
+        );
+    }
+
+    function test_ExpectRevert_BurnWithSlippage() external {
+        _addLiquidity(INITIAL_SHARES, INITIAL_SHARES);
+
+        // Transfer shares to burn
+        ERC20(pair).transfer(
+            address(pair),
+            INITIAL_SHARES - MINIMUM_INITIAL_SHARES
+        );
+
+        vm.expectRevert(
+            abi.encodeWithSelector(Pair.BurnSlippageNotMet.selector)
+        );
+        pair.burn(address(this), INITIAL_SHARES, INITIAL_SHARES);
+    }
+
+    function test_BurnWithSlippage() external {
+        _addLiquidity(INITIAL_SHARES, INITIAL_SHARES);
+
+        // Transfer shares to burn
+        ERC20(pair).transfer(
+            address(pair),
+            INITIAL_SHARES - MINIMUM_INITIAL_SHARES
+        );
+
+        pair.burn(
+            address(this),
+            INITIAL_SHARES - MINIMUM_INITIAL_SHARES,
+            INITIAL_SHARES - MINIMUM_INITIAL_SHARES
         );
     }
 
