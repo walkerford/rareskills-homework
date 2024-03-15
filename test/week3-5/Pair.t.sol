@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 import "forge-std/Test.sol";
 import "openzeppelin-contracts/contracts/interfaces/IERC3156.sol";
 import "solady/tokens/ERC20.sol";
-import "../../../src/week3-5/Pair.sol";
+import "week3-5/Pair.sol";
 
 contract TestPair is Test {
     Pair pair;
