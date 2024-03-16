@@ -209,6 +209,17 @@ contract TestPair is Test {
         }
     }
 
+    function test_SwapWithSlippage() public {
+        _addLiquidity(5e18, 10e18);
+        token0.transfer(address(pair), 1e18);
+        pair.swapWithSlippage(1_662_497_915_624_478_906, address(this));
+
+        uint256 balance0 = ERC20(token0).balanceOf(address(this));
+        assertEq(balance0, INITIAL_TOKENS - 5e18 - 1e18);
+        uint256 balance1 = ERC20(token1).balanceOf(address(this));
+        assertEq(balance1, INITIAL_TOKENS - 10e18 + 1_662_497_915_624_478_906);
+    }
+
     function test_OptimisticTestCases() public {
         uint256[4][4] memory testCases = [
             [uint256(997_000_000_000_000_000), 5e18, 10e18, 1e18],

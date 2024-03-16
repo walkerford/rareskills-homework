@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import "forge-std/console.sol";
+// import "forge-std/console.sol";
 
 import "openzeppelin-contracts/contracts/interfaces/IERC3156.sol";
 import "solady/tokens/ERC20.sol";
@@ -39,6 +39,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
     error InvalidFlashLoanReceiver();
     error InvalidReserveInvariant();
     error InvalidTo(address to);
+    error InvalidTransactionInputs();
     error MintingSlippageNotMet();
     error TransferFailed();
     error UnsupportedToken(address token);
@@ -237,12 +238,115 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         emit Mint(msg.sender, amount0, amount1);
     }
 
+    function swapWithSlippage(
+        uint256 amountOutMin,
+        address to
+    ) external {
+        uint256 amountOut0;
+        uint256 amountOut1;  
+        address tokenOut;
+        uint256 amountInLessFee;
+
+        // Get reserves
+        (uint112 reserve0, uint112 reserve1, ) = getReserves();
+
+        // console.log("reserve0:", reserve0, "reserve1:", reserve1);
+
+        // Validate non-zero reserves
+        if (reserve0 == 0 || reserve1 == 0) {
+            revert InsufficientLiquidity();
+        }
+
+        {
+
+            address token0_ = token0;
+            address token1_ = token1;
+
+            // Get amountOut
+            // Have to first calculate amountIn
+        
+            // Get balances
+            uint256 balance0 = ERC20(token0_).balanceOf(address(this));
+            uint256 balance1 = ERC20(token1_).balanceOf(address(this));
+
+            // console.log("balance0:", balance0, "balance1:", balance1);
+
+            // Get input
+            // User should have transfered an amount to one of the tokens.
+            // Nothing has been sent out, so the math will not overflow.
+            uint256 amountIn0;
+            uint256 amountIn1;
+            uint256 fee;
+
+            // Calculate inputs
+            unchecked {
+                amountIn0 = balance0 - reserve0;
+                amountIn1 = balance1 - reserve1;
+            }
+
+            // console.log("amountIn0:", amountIn0, "amountIn1:", amountIn1);
+
+            // Validate inputs are not both zero
+            if (amountIn0 == 0 && amountIn1 == 0) {
+                revert InvalidTransactionInputs();
+            }
+
+            // Validate inputs are not both filled
+            if (amountIn0 !=0 && amountIn1 != 0) {
+                revert InvalidTransactionInputs();
+            }
+
+            // Set input and output tokens
+            if (amountIn0 > 0) {
+                amountInLessFee = amountIn0 * 997;
+                fee = (amountIn0 * 1000) - amountInLessFee;
+                tokenOut = token1;
+                (reserve1, reserve0) = (reserve0, reserve1);
+            } else {
+                amountInLessFee = amountIn1 * 997;
+                fee = (amountIn1 * 1000) - amountInLessFee;
+                tokenOut = token0;
+            }
+
+            // console.log("amountInLessFee:", amountInLessFee);
+        }
+
+        {
+            // Calculate amount out (accounting for fee)
+            // Using amountOut0 generically, reserve0 as reserveOut, reserve1 as reserveIn
+            uint256 numerator = (uint256(reserve0) * amountInLessFee);
+            uint256 denominator = (uint256(reserve1) * 1000 + amountInLessFee);
+            amountOut0 = numerator / denominator; 
+
+            // console.log("reserveOut:", reserve0, "reserveIn:", reserve1);
+            // console.log("numerator:", numerator, "denominator:", denominator);
+            // console.log("amountOut:", amountOut0);
+
+            if (amountOut0 < amountOutMin) {
+                revert MintingSlippageNotMet();
+            }
+
+            // Swap token index, if necessary
+            if (tokenOut != token0) {
+                amountOut1 = amountOut0;
+                amountOut0 = 0;
+            }
+
+            // console.log("amountOut0:", amountOut0, "amountOut1:", amountOut1);
+        }
+
+        // console.log("t0.balanceOf:", ERC20(token0).balanceOf(address(to)));
+        // console.log("t1.balanceOf:", ERC20(token1).balanceOf(address(to)));
+
+        swap(amountOut0, amountOut1, to);
+    }
+
     function swap(
         uint256 amountOut0,
         uint256 amountOut1,
         address to
-    ) external nonReentrant {
-        // console.log("swap()", amountOut0, amountOut1, string(data));
+    ) public nonReentrant {
+        // console.log("swap()", amountOut0, amountOut1, to);
 
         // Validate non-zero outs
         if (amountOut0 == 0 && amountOut1 == 0) {
@@ -294,8 +398,8 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
             ? balance1 - (reserve1 - amountOut1)
             : 0;
 
-        // console.log("balance, reserve, amountOut 0:", balance0, uint256(reserve0), amountOut0);
-        // console.log("balance, reserve, amountOut 1:", balance1, uint256(reserve1), amountOut1);
+        // console.log("balance0, reserve0, amountOut0:", balance0, uint256(reserve0), amountOut0);
+        // console.log("balance1, reserve1, amountOut1:", balance1, uint256(reserve1), amountOut1);
 
         // Validate "in" amounts
         if (amountIn0 == 0 && amountIn1 == 0) {
