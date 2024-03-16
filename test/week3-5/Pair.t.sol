@@ -210,7 +210,10 @@ contract TestPair is Test {
     }
 
     function test_SwapWithSlippage() public {
+        // Test token 0
+        uint256 snapshot = vm.snapshot();
         _addLiquidity(5e18, 10e18);
+
         token0.transfer(address(pair), 1e18);
         pair.swapWithSlippage(1_662_497_915_624_478_906, address(this));
 
@@ -218,6 +221,18 @@ contract TestPair is Test {
         assertEq(balance0, INITIAL_TOKENS - 5e18 - 1e18);
         uint256 balance1 = ERC20(token1).balanceOf(address(this));
         assertEq(balance1, INITIAL_TOKENS - 10e18 + 1_662_497_915_624_478_906);
+
+        // Test token 1
+        vm.revertTo(snapshot);
+        _addLiquidity(10e18, 5e18);
+
+        token1.transfer(address(pair), 1e18);
+        pair.swapWithSlippage(1_662_497_915_624_478_906, address(this));
+
+        balance1 = ERC20(token1).balanceOf(address(this));
+        assertEq(balance1, INITIAL_TOKENS - 5e18 - 1e18);
+        balance0 = ERC20(token0).balanceOf(address(this));
+        assertEq(balance0, INITIAL_TOKENS - 10e18 + 1_662_497_915_624_478_906);
     }
 
     function test_OptimisticTestCases() public {
