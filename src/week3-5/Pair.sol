@@ -7,7 +7,6 @@ import "openzeppelin-contracts/contracts/interfaces/IERC3156.sol";
 import "solady/tokens/ERC20.sol";
 import "solady/utils/ReentrancyGuard.sol";
 import "solady/utils/FixedPointMathLib.sol";
-import "./Factory.sol";
 import "./UQ112x112.sol";
 
 uint256 constant MINIMUM_INITIAL_SHARES = 1e3;
@@ -238,12 +237,9 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         emit Mint(msg.sender, amount0, amount1);
     }
 
-    function swapWithSlippage(
-        uint256 amountOutMin,
-        address to
-    ) external {
+    function swapWithSlippage(uint256 amountOutMin, address to) external {
         uint256 amountOut0;
-        uint256 amountOut1;  
+        uint256 amountOut1;
         address tokenOut;
         uint256 amountInLessFee;
 
@@ -258,13 +254,12 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         }
 
         {
-
             address token0_ = token0;
             address token1_ = token1;
 
             // Get amountOut
             // Have to first calculate amountIn
-        
+
             // Get balances
             uint256 balance0 = ERC20(token0_).balanceOf(address(this));
             uint256 balance1 = ERC20(token1_).balanceOf(address(this));
@@ -292,7 +287,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
             }
 
             // Validate inputs are not both filled
-            if (amountIn0 !=0 && amountIn1 != 0) {
+            if (amountIn0 != 0 && amountIn1 != 0) {
                 revert InvalidTransactionInputs();
             }
 
@@ -316,7 +311,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
             // Using amountOut0 generically, reserve0 as reserveOut, reserve1 as reserveIn
             uint256 numerator = (uint256(reserve0) * amountInLessFee);
             uint256 denominator = (uint256(reserve1) * 1000 + amountInLessFee);
-            amountOut0 = numerator / denominator; 
+            amountOut0 = numerator / denominator;
 
             // console.log("reserveOut:", reserve0, "reserveIn:", reserve1);
             // console.log("numerator:", numerator, "denominator:", denominator);
