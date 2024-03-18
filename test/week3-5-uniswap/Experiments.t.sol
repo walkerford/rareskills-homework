@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Test.sol";
-import "../../src/week3-5/Experiments.sol";
+import "week3-5-uniswap/Experiments.sol";
 
 contract TestExperiments is Test {
     Experiments ex;

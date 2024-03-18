@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Test.sol";
-import "week3-5/Factory.sol";
+import "week3-5-uniswap/Factory.sol";
 import "./TestToken.sol";
 
 contract TestFactory is Test {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import "week3-5/Factory.sol";
+import "week3-5-uniswap/Factory.sol";
 
 contract TestToken is ERC20 {
     function name() public pure override returns (string memory) {
