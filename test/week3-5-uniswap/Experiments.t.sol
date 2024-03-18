@@ -2,14 +2,9 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Test.sol";
-import "week3-5-uniswap/Experiments.sol";
 
 contract TestExperiments is Test {
-    Experiments ex;
-
-    function setUp() external {
-        ex = new Experiments();
-    }
+    function setUp() external {}
 
     function test_showUint112() external view {
         console.log("uint112.max", type(uint112).max);
