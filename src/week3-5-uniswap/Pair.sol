@@ -26,7 +26,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
 
     error BalanceOutOfBounds();
     error BurnSlippageNotMet();
-// error BurnSlippageTokenMismatch();
+    // error BurnSlippageTokenMismatch();
     error FailureToRepay();
     error InsufficientFlashLoanLiquidity(uint256 amount);
     error InsufficientLiquidity();
@@ -386,10 +386,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
             uint256 balanceLessFee0 = (balance0 * 1000) - (amountIn0 * 3);
             uint256 balanceLessFee1 = (balance1 * 1000) - (amountIn1 * 3);
 
-            // uint256 ab01 = balanceLessFee0 * balanceLessFee1;
-            // console.log("ab0*ab1=", ab01);
-            // console.log("r0*r1=", uint256(reserve0) * uint256(reserve1) * (1000**2));
-
             // Validate reserve invariant
             // reserves need to be multiplied by 1000**2 to account for integer math above
             if (
@@ -482,7 +478,11 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
 
     function _safeTransfer(address token, address to, uint value) private {
         (bool success, bytes memory data) = token.call(
-            abi.encodeWithSelector(bytes4(keccak256(bytes("transfer(address,uint256)"))), to, value)
+            abi.encodeWithSelector(
+                bytes4(keccak256(bytes("transfer(address,uint256)"))),
+                to,
+                value
+            )
         );
         if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
             revert TransferFailed();
@@ -504,7 +504,9 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         // Get timestamp
         uint32 blockTimestamp = uint32(block.timestamp % (2 ** 32));
 
-        // Overflow is expected, around year 2107. Math will be ok.
+        // Overflow will occur around year 2107.  When that happens the
+        // cummulative price for that transaction will be wrong. Subsequent
+        // readings will be fine..
         uint32 timeElapsed;
         unchecked {
             timeElapsed = blockTimestamp - _blockTimestampLast;
@@ -513,12 +515,16 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         // Update variables for oracle
         // Skip any zero cases
         if (timeElapsed != 0 && reserve0 != 0 && reserve1 != 0) {
-            price0CumulativeLast =
-                uint256(UQ112x112.encode(reserve0).uqdiv(reserve1)) *
-                timeElapsed;
-            price1CumulativeLast =
-                uint256(UQ112x112.encode(reserve1).uqdiv(reserve0)) *
-                timeElapsed;
+            // for addition, overflow is desired
+            // for multiplication, won't overflow
+            unchecked {
+                price0CumulativeLast +=
+                    uint256(UQ112x112.encode(reserve0).uqdiv(reserve1)) *
+                    timeElapsed;
+                price1CumulativeLast +=
+                    uint256(UQ112x112.encode(reserve1).uqdiv(reserve0)) *
+                    timeElapsed;
+            }
         }
 
         // Update state
