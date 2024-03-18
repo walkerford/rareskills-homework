@@ -5,11 +5,12 @@ import "forge-std/Test.sol";
 import "openzeppelin-contracts/contracts/interfaces/IERC3156.sol";
 import "solady/tokens/ERC20.sol";
 import "week3-5/Pair.sol";
+import "./TestToken.sol";
 
 contract TestPair is Test {
     Pair pair;
-    Token token0;
-    Token token1;
+    TestToken token0;
+    TestToken token1;
 
     uint256 constant INITIAL_TOKENS = 10_000e18;
     uint256 constant LOAN_AMOUNT = 5_000e18;
@@ -20,8 +21,8 @@ contract TestPair is Test {
 
     function setUp() public {
         vm.label(address(this), "TestPair");
-        token0 = new Token();
-        token1 = new Token();
+        token0 = new TestToken();
+        token1 = new TestToken();
 
         token0.mint(address(this), INITIAL_TOKENS);
         token1.mint(address(this), INITIAL_TOKENS);
@@ -437,20 +438,6 @@ contract TestPair is Test {
         assertEq(goodBorrower.fee(), LOAN_FEE);
         assertEq(goodBorrower.data(), "walker");
         assertEq(goodBorrower.balanceDuringLoan(), LOAN_AMOUNT + LOAN_FEE);
-    }
-}
-
-contract Token is ERC20 {
-    function name() public pure override returns (string memory) {
-        return "TestERC";
-    }
-
-    function symbol() public pure override returns (string memory) {
-        return "TK";
-    }
-
-    function mint(address to, uint256 amount) public {
-        _mint(to, amount);
     }
 }
 
