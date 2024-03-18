@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-// import "forge-std/console.sol";
-
 import "openzeppelin-contracts/contracts/interfaces/IERC3156.sol";
 import "solady/tokens/ERC20.sol";
 import "solady/utils/ReentrancyGuard.sol";
@@ -28,7 +26,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
 
     error BalanceOutOfBounds();
     error BurnSlippageNotMet();
-    // error BurnSlippageTokenMismatch();
+// error BurnSlippageTokenMismatch();
     error FailureToRepay();
     error InsufficientFlashLoanLiquidity(uint256 amount);
     error InsufficientLiquidity();
@@ -59,9 +57,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         address indexed to
     );
     event Sync(uint112 reserve0, uint112 reserve1);
-
-    bytes4 private constant TRANSFER_SELECTOR =
-        bytes4(keccak256(bytes("transfer(address,uint256)")));
 
     string private constant _name = "Pair Shares";
     string private constant _symbol = "PS";
@@ -143,6 +138,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
 
         // TODO: fee
 
+        // Calculate token amounts
         uint256 totalShares = totalSupply();
         amount0 = (shares * balance0) / totalShares;
         amount1 = (shares * balance1) / totalShares;
@@ -170,6 +166,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         address to,
         uint256 minimumShares
     ) external nonReentrant returns (uint256 shares) {
+        // Get reserves
         (uint112 reserve0, uint112 reserve1, ) = getReserves();
 
         // Get balances, which includes anything sent as a part of the
@@ -246,8 +243,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         // Get reserves
         (uint112 reserve0, uint112 reserve1, ) = getReserves();
 
-        // console.log("reserve0:", reserve0, "reserve1:", reserve1);
-
         // Validate non-zero reserves
         if (reserve0 == 0 || reserve1 == 0) {
             revert InsufficientLiquidity();
@@ -264,8 +259,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
             uint256 balance0 = ERC20(token0_).balanceOf(address(this));
             uint256 balance1 = ERC20(token1_).balanceOf(address(this));
 
-            // console.log("balance0:", balance0, "balance1:", balance1);
-
             // Get input
             // User should have transfered an amount to one of the tokens.
             // Nothing has been sent out, so the math will not overflow.
@@ -278,8 +271,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
                 amountIn0 = balance0 - reserve0;
                 amountIn1 = balance1 - reserve1;
             }
-
-            // console.log("amountIn0:", amountIn0, "amountIn1:", amountIn1);
 
             // Validate inputs are not both zero
             if (amountIn0 == 0 && amountIn1 == 0) {
@@ -302,8 +293,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
                 fee = (amountIn1 * 1000) - amountInLessFee;
                 tokenOut = token0;
             }
-
-            // console.log("amountInLessFee:", amountInLessFee);
         }
 
         {
@@ -312,10 +301,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
             uint256 numerator = (uint256(reserve0) * amountInLessFee);
             uint256 denominator = (uint256(reserve1) * 1000 + amountInLessFee);
             amountOut0 = numerator / denominator;
-
-            // console.log("reserveOut:", reserve0, "reserveIn:", reserve1);
-            // console.log("numerator:", numerator, "denominator:", denominator);
-            // console.log("amountOut:", amountOut0);
 
             if (amountOut0 < amountOutMin) {
                 revert MintingSlippageNotMet();
@@ -326,12 +311,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
                 amountOut1 = amountOut0;
                 amountOut0 = 0;
             }
-
-            // console.log("amountOut0:", amountOut0, "amountOut1:", amountOut1);
         }
-
-        // console.log("t0.balanceOf:", ERC20(token0).balanceOf(address(to)));
-        // console.log("t1.balanceOf:", ERC20(token1).balanceOf(address(to)));
 
         swap(amountOut0, amountOut1, to);
     }
@@ -341,8 +321,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         uint256 amountOut1,
         address to
     ) public nonReentrant {
-        // console.log("swap()", amountOut0, amountOut1, to);
-
         // Validate non-zero outs
         if (amountOut0 == 0 && amountOut1 == 0) {
             revert InsufficientOutput();
@@ -393,9 +371,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
             ? balance1 - (reserve1 - amountOut1)
             : 0;
 
-        // console.log("balance0, reserve0, amountOut0:", balance0, uint256(reserve0), amountOut0);
-        // console.log("balance1, reserve1, amountOut1:", balance1, uint256(reserve1), amountOut1);
-
         // Validate "in" amounts
         if (amountIn0 == 0 && amountIn1 == 0) {
             revert InsufficientInput();
@@ -410,12 +385,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
             // 0.3% = 3 / 1000
             uint256 balanceLessFee0 = (balance0 * 1000) - (amountIn0 * 3);
             uint256 balanceLessFee1 = (balance1 * 1000) - (amountIn1 * 3);
-
-            // console.log("aIn0", amountIn0);
-            // console.log("aIn1", amountIn1);
-
-            // console.log("ab0", balanceLessFee0);
-            // console.log("ab1", balanceLessFee1);
 
             // uint256 ab01 = balanceLessFee0 * balanceLessFee1;
             // console.log("ab0*ab1=", ab01);
@@ -453,7 +422,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
     }
 
     /**
-     *
+     * Calculate fee that will be charge from the exchange of this token
      * @param token that will be loaned
      * @param amount that will be loaned
      * @dev reverts when passed an unsupported token
@@ -513,7 +482,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
 
     function _safeTransfer(address token, address to, uint value) private {
         (bool success, bytes memory data) = token.call(
-            abi.encodeWithSelector(TRANSFER_SELECTOR, to, value)
+            abi.encodeWithSelector(bytes4(keccak256(bytes("transfer(address,uint256)"))), to, value)
         );
         if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
             revert TransferFailed();
