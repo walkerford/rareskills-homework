@@ -5,7 +5,7 @@ import {console} from "forge-std/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract AdminToken is ERC20 {
-    address admin;
+    address immutable admin;
 
     constructor(uint256 amount) ERC20("AdminToken", "AT") {
         admin = msg.sender;

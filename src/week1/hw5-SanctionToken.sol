@@ -23,7 +23,7 @@ error ERC20SanctionedSender(address sender);
 error ERC20UnauthorizedSanctioner(address address_);
 
 contract SanctionToken is ERC20 {
-    address sanctioner;
+    address immutable sanctioner;
     mapping(address => bool) private _sanctioned;
 
     constructor(uint256 amount) ERC20("SanctionToken", "ST") {

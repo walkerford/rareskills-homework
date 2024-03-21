@@ -18,12 +18,12 @@ contract BondCurveToken is ERC20 {
     }
 
     function getBuyPriceInWei(uint256 amount) external view returns (uint256) {
-        uint256 totalSupply = this.totalSupply();
-        uint256 priceInWei = ((((totalSupply + amount) ** 2)) -
-            (totalSupply ** 2)) / PRICE_UNITS_ADJUSTMENT;
+        uint256 totalSupply_ = totalSupply();
+        uint256 priceInWei = ((((totalSupply_ + amount) ** 2)) -
+            (totalSupply_ ** 2)) / PRICE_UNITS_ADJUSTMENT;
         console.log(
             "getBuyPriceInWei() totalSupply:",
-            totalSupply / MULT,
+            totalSupply_ / MULT,
             "price:",
             priceInWei / MULT
         );
@@ -31,13 +31,13 @@ contract BondCurveToken is ERC20 {
     }
 
     function getSellPriceInWei(uint256 amount) external view returns (uint256) {
-        uint256 totalSupply = this.totalSupply();
+        uint256 totalSupply_ = totalSupply();
         // Solidity underflow check will catch if amount is too large
-        uint256 priceInWei = ((totalSupply ** 2) -
-            ((totalSupply - amount) ** 2)) / PRICE_UNITS_ADJUSTMENT;
+        uint256 priceInWei = ((totalSupply_ ** 2) -
+            ((totalSupply_ - amount) ** 2)) / PRICE_UNITS_ADJUSTMENT;
         console.log(
             "getSellPriceInWei() totalSupply:",
-            totalSupply / MULT,
+            totalSupply_ / MULT,
             "price:",
             priceInWei / MULT
         );

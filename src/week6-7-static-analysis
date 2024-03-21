@@ -1,0 +1,6 @@
+# Slither notes
+
+- Missing check on return value
+- Unnecessary "this" before some calls
+- solc version too high
+-
