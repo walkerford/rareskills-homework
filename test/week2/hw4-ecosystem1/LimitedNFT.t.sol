@@ -8,7 +8,7 @@ bytes32 constant MERKLE_ROOT = 0x502aa9198af78897bef863c2590af7f5cc8373aa8afd21b
 bytes32 constant MERKLE_PROOF = 0xebf09d18ef212432cfa2e714503e8710a4032aa6d15b222f8880dd796ec2e957;
 address constant ALICE = 0x1111111111111111111111111111111111111111;
 
-contract TestLimitedNFT is Test{
+contract TestLimitedNFT is Test {
     LimitedNFT nft;
 
     function setUp() public {
@@ -20,7 +20,7 @@ contract TestLimitedNFT is Test{
         // Create contract
         vm.prank(ALICE);
         nft = new LimitedNFT(MERKLE_ROOT);
-        
+
         // Mint nft using normal minting
         vm.prank(ALICE);
         nft.mint{value: 1 ether}();
@@ -29,6 +29,11 @@ contract TestLimitedNFT is Test{
     function test_StartingBalance() external {
         // Should start out with 1 nft minted to alice
         assertEq(nft.balanceOf(ALICE), 1);
+    }
+
+    function test_ExpectsRevert_MintWithWrongPrice() external {
+        vm.expectRevert(abi.encodeWithSelector(LimitedNFT.WrongPrice.selector));
+        nft.mint{value: PRICE_DISCOUNTED}();
     }
 
     function test_DiscountedMint() external {
@@ -46,7 +51,10 @@ contract TestLimitedNFT is Test{
 
     function test_Royalty() external {
         // Send purchase price of 1000, contract has 2.5% royalty, so 25 expected.
-        (address royaltyReceiver, uint256 royaltyFraction) = nft.royaltyInfo(0, 1000);
+        (address royaltyReceiver, uint256 royaltyFraction) = nft.royaltyInfo(
+            0,
+            1000
+        );
         assertEq(royaltyReceiver, ALICE);
         assertEq(royaltyFraction, 25);
     }
@@ -55,7 +63,7 @@ contract TestLimitedNFT is Test{
         // Validate starting balances
         assertEq(ALICE.balance, 0.5 ether);
         assertEq(address(nft).balance, 1 ether);
-        
+
         // Withdraw ether
         vm.prank(ALICE);
         nft.withdraw(1 ether);
