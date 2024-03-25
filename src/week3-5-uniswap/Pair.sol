@@ -33,6 +33,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
     error InsufficientLiquidityBurned();
     error InsufficientInput();
     error InsufficientOutput();
+    error InvalidAddress();
     error InvalidFlashLoanReceiver();
     error InvalidReserveInvariant();
     error InvalidTo(address to);
@@ -58,8 +59,8 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
     );
     event Sync(uint112 reserve0, uint112 reserve1);
 
-    string private constant _name = "Pair Shares";
-    string private constant _symbol = "PS";
+    string private constant PAIR_NAME = "Pair Shares";
+    string private constant PAIR_SYMBOL = "PS";
 
     uint256 public price0CumulativeLast;
     uint256 public price1CumulativeLast;
@@ -73,6 +74,9 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
     uint112 private _reserve1;
 
     constructor(address token0_, address token1_) {
+        if (token0_ == address(0) || token1_ == address(0)) {
+            revert InvalidAddress();
+        }
         token0 = token0_;
         token1 = token1_;
         factory = msg.sender;
@@ -81,11 +85,11 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
     /*** PUBLIC FUNCTIONS ***/
 
     function name() public pure override returns (string memory) {
-        return _name;
+        return PAIR_NAME;
     }
 
     function symbol() public pure override returns (string memory) {
-        return _symbol;
+        return PAIR_SYMBOL;
     }
 
     function getReserves()
@@ -236,7 +240,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
 
     function swapWithSlippage(uint256 amountOutMin, address to) external {
         uint256 amountOut0;
-        uint256 amountOut1;
+        uint256 amountOut1 = 0;
         address tokenOut;
         uint256 amountInLessFee;
 
@@ -451,7 +455,9 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         uint256 balanceBefore = ERC20(token).balanceOf(address(this));
 
         // Transfer loan
-        ERC20(token).transfer(address(receiver), amount);
+        if (ERC20(token).transfer(address(receiver), amount)) {
+            revert TransferFailed();
+        }
 
         // Callback
         bytes32 result = receiver.onFlashLoan(
@@ -487,7 +493,6 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
             revert TransferFailed();
         }
-        // require(success && (data.length == 0 || abi.decode(data, (bool))), 'UniswapV2: TRANSFER_FAILED');
     }
 
     function _update(
