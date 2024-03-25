@@ -12,12 +12,11 @@ uint256 constant TOKEN_LIMIT = 1000;
 uint256 constant PRICE_NORMAL = 1e18;
 uint256 constant PRICE_DISCOUNTED = PRICE_NORMAL / 2;
 
-error InsufficientBalance(uint256 amount, uint256 balance);
-
 contract LimitedNFT is ERC721, ERC2981, Ownable2Step {
     using BitMaps for BitMaps.BitMap;
     using Address for address;
     
+    error InsufficientBalance(uint256 amount, uint256 balance);
     error LimitReached();
     error WrongPrice();
     error BadProof();
@@ -43,7 +42,7 @@ contract LimitedNFT is ERC721, ERC2981, Ownable2Step {
     }
 
     /// @notice Only those addresses included in the merkle tree can mint at a discount
-    function mintDicounted(bytes32[] calldata merkleProof, uint256 index) external payable returns(uint256) {
+    function mintDiscounted(bytes32[] calldata merkleProof, uint256 index) external payable returns(uint256) {
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(_msgSender(), index))));
         bool verified = MerkleProof.verify(merkleProof, merkleRoot, leaf);
 
@@ -79,7 +78,7 @@ contract LimitedNFT is ERC721, ERC2981, Ownable2Step {
 
     function _mint() private returns(uint256) {
         // Check token supply
-        if (tokenSupply > TOKEN_LIMIT - 1) revert LimitReached();
+        if (tokenSupply >= TOKEN_LIMIT) revert LimitReached();
 
         uint256 tokenId = tokenSupply;
         tokenSupply++;

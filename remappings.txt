@@ -5,3 +5,4 @@ forge-std/=lib/forge-std/src/
 openzeppelin-contracts/=lib/openzeppelin-contracts/
 solady/=lib/solady/src/
 week3-5-uniswap/=src/week3-5-uniswap
+week2/=src/week2

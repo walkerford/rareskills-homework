@@ -54,6 +54,12 @@ contract TestStaking is Test {
         assertEq(nft.balanceOf(alice), 2);
     }
 
+    function test_RevertWhen_UnstakeUnauthorized() external {
+        // Alice owns the contract, so staking as this contract will fail
+        vm.expectRevert(abi.encodeWithSelector(Staking.NotAuthorized.selector));
+        staking.unstake(tokenId1);
+    }
+
     function test_RevertWhen_StakingUnauthorized() external {
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -64,6 +70,56 @@ contract TestStaking is Test {
         );
         vm.prank(alice);
         staking.stake(tokenId2);
+    }
+
+    function test_WithdrawPartialAmount() external {
+        // Stake happens in block 1
+        _stake(alice, tokenId1);
+
+        // Advance a full period
+        vm.roll(BLOCKS_PER_PERIOD + 1);
+
+        // Test rewards balance
+        uint256 credits = staking.credits(tokenId1);
+        assertEq(credits, REWARDS_PER_PERIOD);
+
+        // Withdraw rewards
+        vm.prank(alice);
+        staking.withdraw(tokenId1, REWARDS_PER_PERIOD / 2);
+        assertEq(staking.rewardToken().balanceOf(alice), REWARDS_PER_PERIOD / 2);
+    }
+
+    function test_RevertWhen_WithdrawNotAuthorized() external {
+        // Stake happens in block 1
+        _stake(alice, tokenId1);
+
+        // Advance a full period
+        vm.roll(BLOCKS_PER_PERIOD + 1);
+
+        // Test rewards balance
+        uint256 credits = staking.credits(tokenId1);
+        assertEq(credits, REWARDS_PER_PERIOD);
+
+        // Withdraw rewards from unauthorized address
+        vm.expectRevert(abi.encodeWithSelector(Staking.NotAuthorized.selector));
+        staking.withdraw(tokenId1, REWARDS_PER_PERIOD);
+    }
+
+    function test_RevertWhen_WithdrawTooMuch() external {
+        // Stake happens in block 1
+        _stake(alice, tokenId1);
+
+        // Advance a full period
+        vm.roll(BLOCKS_PER_PERIOD + 1);
+
+        // Test rewards balance
+        uint256 credits = staking.credits(tokenId1);
+        assertEq(credits, REWARDS_PER_PERIOD);
+
+        // Withdraw too much
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Staking.NotEnoughCredits.selector));
+        staking.withdraw(tokenId1, REWARDS_PER_PERIOD+1);
     }
 
     function test_RewardsAccumulation() external {

@@ -6,16 +6,16 @@ import "forge-std/console.sol";
 import "./RewardToken.sol";
 import "./LimitedNFT.sol";
 
-error NotAuthorized();
-error NoStake();
-error NotEnoughCredits();
-
 uint256 constant SECONDS_PER_PERIOD = 60 * 60 * 24;
 uint256 constant SECONDS_PER_BLOCK = 12;
 uint256 constant BLOCKS_PER_PERIOD = SECONDS_PER_PERIOD / SECONDS_PER_BLOCK; // 60*60*24/12=7200
 uint256 constant REWARDS_PER_PERIOD = 10e18;
 
 contract Staking is IERC721Receiver {
+    error NotAuthorized();
+    error NoStake();
+    error NotEnoughCredits();
+    
     event Stake();
     event Unstake();
 
