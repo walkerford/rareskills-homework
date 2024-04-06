@@ -11,6 +11,7 @@
         "lcov",
         "Merkle",
         "nomicfoundation",
+        "Overmint",
         "PRNG",
         "Rareskills",
         "reentrancy",
