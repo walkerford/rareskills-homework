@@ -455,7 +455,7 @@ contract Pair is ERC20, ReentrancyGuard, IERC3156FlashLender {
         uint256 balanceBefore = ERC20(token).balanceOf(address(this));
 
         // Transfer loan
-        if (ERC20(token).transfer(address(receiver), amount)) {
+        if (!ERC20(token).transfer(address(receiver), amount)) {
             revert TransferFailed();
         }
 

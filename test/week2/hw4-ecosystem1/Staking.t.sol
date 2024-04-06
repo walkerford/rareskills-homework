@@ -48,6 +48,13 @@ contract TestStaking is Test {
 
         assertEq(nft.balanceOf(address(staking)), 1);
 
+        // Advance a full period
+        vm.roll(BLOCKS_PER_PERIOD + 1);
+
+        // Expect an Accumulate() event after _unstake
+        vm.expectEmit();
+        emit Staking.Accumulate();
+        
         _unstake(alice, tokenId1);
 
         assertEq(nft.balanceOf(address(staking)), 0);
@@ -175,4 +182,42 @@ contract TestStaking is Test {
             REWARDS_PER_PERIOD * 2
         );
     }
+
+    function test_withdraw() external {
+        // Stake happens in block 1
+        _stake(alice, tokenId1);
+
+        // Advance a full period
+        vm.roll(BLOCKS_PER_PERIOD + 1);
+        
+        // Expect an accumulation event
+        vm.expectEmit(false, false, false, true, address(staking));
+        emit Staking.Accumulate();
+
+        // Withdraw rewards
+        vm.prank(alice);
+        staking.withdraw(tokenId1);
+    }
+
+    function test_PartialWithdraw() external {
+        // Stake happens in block 1
+        _stake(alice, tokenId1);
+
+        // Advance a full period
+        vm.roll(BLOCKS_PER_PERIOD + 1);
+        
+        // Expect an accumulation event
+        vm.expectEmit(false, false, false, true, address(staking));
+        emit Staking.Accumulate();
+
+        // Withdraw rewards
+        vm.prank(alice);
+        staking.withdraw(tokenId1, 1);
+    }
+
+    function test_constants() external {
+        assertEq(SECONDS_PER_PERIOD, 86_400);
+        assertEq(BLOCKS_PER_PERIOD, 7_200);
+    }
+
 }

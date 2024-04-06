@@ -16,7 +16,8 @@
         "Rareskills",
         "reentrancy",
         "remappings",
-        "solady"
+        "solady",
+        "walkerford"
     ],
     "ignoreWords": [],
     "import": []

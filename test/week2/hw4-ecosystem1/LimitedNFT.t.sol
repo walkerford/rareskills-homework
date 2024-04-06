@@ -119,6 +119,12 @@ contract TestLimitedNFT is Test {
         assertEq(address(nft).balance, nftStartingBalance - 1 ether);
     }
 
+    function test_RevertsWhen_WithdrawUnauthorized() external {
+        // Withdraw from unathorized account (this)
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(this)));
+        nft.withdraw(1 ether);
+    }
+
     function test_ExpectsRevert_withdraw_TooMuch() external {
         // uint256 aliceStaringBalance = ALICE.balance;
         uint256 nftStartingBalance = address(nft).balance;

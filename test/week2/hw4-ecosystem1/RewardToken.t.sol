@@ -18,6 +18,13 @@ contract TestRewardToken is Test {
         assertEq(token.balanceOf(address(this)), INITIAL_MINT);
     }
 
+    function test_RevertWhen_MintWithWrongAddress() external {
+        // Use address(0) as an incorrect owner
+        vm.prank(address(0));
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0)));
+        token.mint(address(this), INITIAL_MINT);
+    }
+
     function test_ExpectRevert_mint_BadAddress() external {
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidReceiver.selector, 0));
         token.mint(address(0), INITIAL_MINT);
