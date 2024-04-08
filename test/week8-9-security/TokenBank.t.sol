@@ -2,9 +2,9 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "../src/TokenBank.sol";
+import "week8-9-security/TokenBank.sol";
 
-contract TankBankTest is Test {
+contract TokenBankTest is Test {
     TokenBankChallenge public tokenBankChallenge;
     TokenBankAttacker public tokenBankAttacker;
     address player = address(1234);
