@@ -14,8 +14,5 @@ module.exports = {
         version: "0.7.0",
       },
     },
-  },
-  paths: {
-    sources: "./src/week8-9-security/Overmint1-ERC1155",
-  },
+  }
 };
