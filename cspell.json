@@ -12,6 +12,7 @@
         "Merkle",
         "nomicfoundation",
         "Overmint",
+        "Pausable",
         "PRNG",
         "Rareskills",
         "reentrancy",
