@@ -35,7 +35,6 @@ contract Token is Ownable, Pausable {
     mapping(address => uint256) public balances;
 
     function transfer(address to, uint256 value) public whenNotPaused {
-        require(balances[msg.sender] >= value, "Insufficient funds");
         // unchecked to save gas
         unchecked {
             balances[msg.sender] -= value;
