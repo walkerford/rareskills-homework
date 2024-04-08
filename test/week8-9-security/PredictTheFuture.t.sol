@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import "../src/PredictTheFuture.sol";
+import "week8-9-security/PredictTheFuture.sol";
 
 contract PredictTheFutureTest is Test {
     PredictTheFuture public predictTheFuture;
@@ -22,7 +22,7 @@ contract PredictTheFutureTest is Test {
         vm.warp(93582192);
 
         // Put your solution here
-        exploitContract.guessNow{value: 1 ether}();
+        exploitContract.guessNow{value: 1 ether}(1);
         uint256 blockCounter = 104293;
         uint256 timestampCounter = 93582192;
         for (uint256 i = 0; i < 50; i++) {
