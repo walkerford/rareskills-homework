@@ -3,9 +3,9 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import "week6-7-static-analysis/echidna1/token.sol";
+import "week6-7-static-analysis/echidna/token.sol";
 
-contract Echidna1Test is Test {
+contract EchidnaTest is Test {
     TestToken token;
     address echidna;
 
@@ -14,12 +14,13 @@ contract Echidna1Test is Test {
         echidna = tx.origin;
     }
 
-    function test() external {
+    // function test_RevertsWhen() external {
+    function test_RevertsWhen() external view {
         console.log("tx.origin", tx.origin);
         console.log("msg.sender", msg.sender);
         console.log("address(echidna)", address(echidna));
         console.log("address(this)", address(this));
-        token.transfer(echidna, 1);
+        // token.transfer(echidna, 1);
         console.log("balances[echidna]", token.balances(echidna));
         console.log("balances[this]", token.balances(address(this)));
     }
