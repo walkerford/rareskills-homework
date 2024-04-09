@@ -4,8 +4,12 @@ pragma solidity ^0.8.0;
 contract Ownable {
     address public owner = msg.sender;
 
+    function Owner() public {
+        owner = msg.sender;
+    }
+
     modifier onlyOwner() {
-        require(msg.sender == owner, "Ownable: Caller is not the owner.");
+        require(owner == msg.sender);
         _;
     }
 }
@@ -35,8 +39,6 @@ contract Token is Ownable, Pausable {
     mapping(address => uint256) public balances;
 
     function transfer(address to, uint256 value) public whenNotPaused {
-        require(balances[msg.sender] >= value, "Insufficient funds");
-        // unchecked to save gas
         unchecked {
             balances[msg.sender] -= value;
             balances[to] += value;
