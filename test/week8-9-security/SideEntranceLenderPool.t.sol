@@ -11,6 +11,8 @@ contract SideEntranceLenderPoolTest is Test {
 
     uint256 constant ETHER_IN_POOL = 1 ether;
 
+    receive() external payable {}
+
     function setUp() public {
         pool = new SideEntranceLenderPool();
         pool.deposit{value: ETHER_IN_POOL}();
@@ -24,6 +26,7 @@ contract SideEntranceLenderPoolTest is Test {
 
     function test_attack() public {
         // Put your solution here
+        exploiter.attack();
 
         _checkSolved();
     }
