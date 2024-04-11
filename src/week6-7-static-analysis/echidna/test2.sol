@@ -8,7 +8,7 @@ import "./token.sol";
 ///      solc-select use 0.8.0
 ///      echidna program-analysis/echidna/exercises/exercise2/template.sol
 ///      ```
-contract TestToken is Token {
+contract TestToken2 is Token {
     constructor() {
         pause(); // pause the contract
         owner = address(0); // lose ownership
@@ -16,6 +16,6 @@ contract TestToken is Token {
 
     function echidna_cannot_be_unpause() public view returns (bool) {
         // TODO: add the property
-        return(paused() == true);
+        return (paused() == true);
     }
 }

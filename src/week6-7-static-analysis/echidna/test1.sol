@@ -8,7 +8,7 @@ import "./token.sol";
 ///      solc-select use 0.8.0
 ///      echidna program-analysis/echidna/exercises/exercise1/template.sol
 ///      ```
-contract TestToken is Token {
+contract TestToken1 is Token {
     address echidna = tx.origin;
 
     constructor() {
