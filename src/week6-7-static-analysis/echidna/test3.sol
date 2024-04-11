@@ -11,7 +11,7 @@ import "./mintable.sol";
 contract TestToken3 is MintableToken {
     address echidna = msg.sender;
 
-    int256 constant MAX_MINTABLE = 10_000;
+    uint256 constant MAX_MINTABLE = 10_000;
 
     // TODO: update the constructor
     constructor() MintableToken(MAX_MINTABLE) {
