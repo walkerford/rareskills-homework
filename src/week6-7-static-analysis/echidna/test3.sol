@@ -8,13 +8,18 @@ import "./mintable.sol";
 ///      solc-select use 0.8.0
 ///      echidna program-analysis/echidna/exercises/exercise3/template.sol --contract TestToken
 ///      ```
-contract TestToken is MintableToken {
+contract TestToken3 is MintableToken {
     address echidna = msg.sender;
 
+    int256 constant MAX_MINTABLE = 10_000;
+
     // TODO: update the constructor
-    constructor(int256 totalMintable) MintableToken(totalMintable) {}
+    constructor() MintableToken(MAX_MINTABLE) {
+        owner = tx.origin;
+    }
 
     function echidna_test_balance() public view returns (bool) {
         // TODO: add the property
+        return totalMinted <= MAX_MINTABLE && totalMinted >= 0;
     }
 }

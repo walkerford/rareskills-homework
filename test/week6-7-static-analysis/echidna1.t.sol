@@ -8,14 +8,14 @@ import "week6-7-static-analysis/echidna/mintable.sol";
 import "week6-7-static-analysis/echidna/test3.sol";
 
 contract EchidnaExperiments is Test {
-    TestToken token;
     address echidna;
+    TestToken token;
     TestToken3 testToken3;
     MintableToken mintable;
 
     function setUp() external {
-        token = new TestToken();
         echidna = tx.origin;
+        token = new TestToken();
         testToken3 = new TestToken3();
         mintable = new MintableToken(10_000);
     }
@@ -56,13 +56,14 @@ contract EchidnaExperiments is Test {
         console.log("address(this)", address(this));
         // address(this) 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496
 
-        console.log();
+        console.log("totalMintable", uint256(testToken3.totalMintable()));
     }
 
     function test_mint() external {
-        vm.prank(tx.origin);
+        vm.startPrank(tx.origin);
         testToken3.mint(1_000);
         assert(testToken3.balances(tx.origin) == 1_000);
+        vm.stopPrank();
     }
 }
 
