@@ -16,6 +16,6 @@ module.exports = {
     },
   },
   paths: {
-    sources: "./src/week8-9-security",
+    sources: "./src/week8-9-security/overmint",
   },
 };
