@@ -11,7 +11,7 @@ import "./mintable.sol";
 contract TestToken3 is MintableToken {
     address echidna = msg.sender;
 
-    uint256 constant MAX_MINTABLE = 10_000;
+    int256 constant MAX_MINTABLE = 10_000;
 
     // TODO: update the constructor
     constructor() MintableToken(MAX_MINTABLE) {
@@ -20,6 +20,7 @@ contract TestToken3 is MintableToken {
 
     function echidna_test_balance() public view returns (bool) {
         // TODO: add the property
-        return totalMinted <= MAX_MINTABLE && totalMinted >= 0;
+        // return totalMinted <= MAX_MINTABLE && totalMinted >= 0;
+        return balances[msg.sender] <= uint256(MAX_MINTABLE);
     }
 }
