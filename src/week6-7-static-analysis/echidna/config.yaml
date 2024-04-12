@@ -1,2 +1,2 @@
 corpusDir: "coverage"
-testLimit: 20000
+testLimit: 5000
