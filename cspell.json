@@ -18,6 +18,7 @@
         "reentrancy",
         "remappings",
         "solady",
+        "solmate",
         "walkerford"
     ],
     "ignoreWords": [],
