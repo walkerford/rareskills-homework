@@ -4,7 +4,6 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "week8-9-security/Denial.sol";
-import "week8-9-security/DenialAttacker.sol";
 
 contract DenialTest is Test {
     Denial denial;
