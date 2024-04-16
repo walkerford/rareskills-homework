@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "week8-9-security/NaughtCoin.sol";
-import "week8-9-security/NaughtCoinAttacker.sol";
 
 contract NaughtCoinTest is Test {
     NaughtCoin token;
