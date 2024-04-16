@@ -21,6 +21,7 @@
         "Rareskills",
         "reentrancy",
         "remappings",
+        "selfdestruct",
         "SLOAD",
         "solady",
         "solmate",
