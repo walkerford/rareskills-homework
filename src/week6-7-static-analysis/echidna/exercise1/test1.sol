@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "./token.sol";
-import "./token-fixed.sol" as tf;
+import "./token1.sol";
+import "./token1-fixed.sol" as tf;
 
 /// @dev Run the template with
 ///      ```

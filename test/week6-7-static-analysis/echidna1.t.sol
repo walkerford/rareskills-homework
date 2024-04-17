@@ -3,20 +3,20 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import "week6-7-static-analysis/echidna/token.sol";
-import "week6-7-static-analysis/echidna/mintable.sol";
-import "week6-7-static-analysis/echidna/test3.sol";
+// import "week6-7-static-analysis/echidna/exercise3/token3.sol" as token3;
+import "week6-7-static-analysis/echidna/exercise3/mintable.sol";
+import "week6-7-static-analysis/echidna/exercise3/test3.sol" as test3;
 
 contract EchidnaExperiments is Test {
     address echidna;
-    TestToken token;
-    TestToken3 testToken3;
+    TestToken0 token;
+    test3.TestToken testToken3;
     MintableToken mintable;
 
     function setUp() external {
         echidna = tx.origin;
-        token = new TestToken();
-        testToken3 = new TestToken3();
+        token = new TestToken0();
+        testToken3 = new test3.TestToken();
         mintable = new MintableToken(10_000);
     }
 
@@ -60,14 +60,14 @@ contract EchidnaExperiments is Test {
     }
 
     function test_mint() external {
-        vm.startPrank(tx.origin);
+        vm.startPrank(address(this));
         testToken3.mint(1_000);
-        assert(testToken3.balances(tx.origin) == 1_000);
+        assert(testToken3.balances(address(this)) == 1_000);
         vm.stopPrank();
     }
 }
 
-contract TestToken is Token {
+contract TestToken0 is Token {
     address echidna = tx.origin;
 
     constructor() {
