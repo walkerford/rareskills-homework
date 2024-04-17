@@ -1,7 +1,8 @@
 # Week 6-7 Static Analysis
 
-Echidna is meant to be run from this directory.
+Each echidna exercise has its own folder with config and a Makefile to run the
+command. Change into the directory for each exercise before running one of the
+following commands:
 
-```
-echidna --config config.yaml ./echidna7-1/test.sol
-```
+`make echidna-fail` tests the contract and shows a failing test.
+`make echidna-pass` tests the fixed contract and shows passing tests.
