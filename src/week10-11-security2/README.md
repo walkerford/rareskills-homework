@@ -73,3 +73,15 @@ In the case of this contract, three votes need to be cast. The challenger
 transfers one of his votes to a friend, and then votes for himself. The
 challenger then transfers his second vote to the friend. The friend votes
 twice, which breaks the tie, allowing the challenger to win and claim the funds.
+
+## Gatekeeper One
+
+This contract provides a set of three modifier which act as gates that one must
+pass in order to be made the "entrant".
+
+The first gate requires that the tx.origin be different from the msg.sender.
+
+The second gate requires a specific amount of gas is provided.
+
+The third gate requires a specific 8 bytes that are derived from the tx.origin
+which can also be compared to several different typecasts of itself.
