@@ -12,6 +12,7 @@ contract GatekeeperOneTest is Test {
     }
 
     function test() external {
+        new Knight(gatekeeper);
         _checkSolved();
     }
 

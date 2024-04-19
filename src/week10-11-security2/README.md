@@ -80,8 +80,11 @@ This contract provides a set of three modifier which act as gates that one must
 pass in order to be made the "entrant".
 
 The first gate requires that the tx.origin be different from the msg.sender.
+This is accomplished by calling into a separate contract to make the call to the
+gate contract.
 
-The second gate requires a specific amount of gas is provided.
+The second gate requires a specific amount of gas is provided. I determined the
+amount by using a for loop with a try-catch until a successful entry was made.
 
-The third gate requires a specific 8 bytes that are derived from the tx.origin
-which can also be compared to several different typecasts of itself.
+The third gate requires a key that passes some typecasting checks. It is passed
+by creating a key from tx.origin with its bytes 2 and 3 zeroed out.
