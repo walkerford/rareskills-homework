@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.15;
+pragma solidity ^0.8.15;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -63,7 +63,7 @@ contract Democracy is Ownable, ERC721 {
         _;
     }
 
-    constructor() payable ERC721("Democracy NFT", "DMRCY") {
+    constructor() payable Ownable(msg.sender) ERC721("Democracy NFT", "DMRCY") {
         incumbent = owner();
     }
 
@@ -100,7 +100,10 @@ contract Democracy is Ownable, ERC721 {
         voted[msg.sender] = true;
 
         // Tip hodler for doing their civic duty
-        payable(msg.sender).call{value: address(this).balance / 10}("");
+        (bool ok, ) = payable(msg.sender).call{
+            value: address(this).balance / 10
+        }("");
+        require(ok, "Transfer failure");
 
         // Once all hodlers have voted, call election
         if (votes[incumbent] + votes[challenger] >= TOTAL_SUPPLY_CAP) {
@@ -124,7 +127,7 @@ contract Democracy is Ownable, ERC721 {
         address to,
         uint256 tokenId
     ) public override callerIsNotAContract {
-        _approve(to, tokenId);
+        approve(to, tokenId);
     }
 
     function transferFrom(
@@ -133,7 +136,7 @@ contract Democracy is Ownable, ERC721 {
         uint256 tokenId
     ) public override callerIsNotAContract {
         require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
+            _isAuthorized(ownerOf(tokenId), msg.sender, tokenId),
             "ERC721: caller is not token owner or approved"
         );
 
@@ -143,10 +146,11 @@ contract Democracy is Ownable, ERC721 {
     function safeTransferFrom(
         address from,
         address to,
-        uint256 tokenId
+        uint256 tokenId,
+        bytes memory
     ) public override callerIsNotAContract {
         require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
+            _isAuthorized(ownerOf(tokenId), msg.sender, tokenId),
             "ERC721: caller is not token owner or approved"
         );
 
@@ -154,7 +158,8 @@ contract Democracy is Ownable, ERC721 {
     }
 
     function withdrawToAddress(address address_) external onlyOwner {
-        payable(address_).call{value: address(this).balance}("");
+        (bool ok, ) = payable(address_).call{value: address(this).balance}("");
+        require(ok, "Transfer failure");
     }
 
     function _callElection() private {
