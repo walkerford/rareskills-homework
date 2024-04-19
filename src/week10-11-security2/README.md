@@ -26,3 +26,18 @@ contracts, however this can be bypassed by having the attacking contract perform
 the functions in its constructor, during which time the code size of the
 constructor is 0. The attacker must deploy 5 additional contracts that each
 mint and transfer a new NFT from their constructor.
+
+# Democracy
+
+This contract simulates a voting system that is rigged. When the challenger is
+nominated, the challenger is given two votes, but the vote count is rigger so
+that even when the challenger votes with both votes, the outcome will be a tie
+and the incumbent will win.
+
+The vulnerability is that NFT used for voting can be transferred after voting,
+giving other accounts the ability to vote. Although this contract prevents
+contracts from voting, the voting NFT can still be transferred to another EOA.
+In the case of this contract, three votes need to be cast. The challenger
+transfers one of his votes to a friend, and then votes for himself. The
+challenger then transfers his second vote to the friend. The friend votes
+twice, which breaks the tie, allowing the challenger to win and claim the funds.
