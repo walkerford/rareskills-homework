@@ -1,0 +1,8 @@
+cryticArgs:
+  [
+    "--solc-remaps",
+    "@openzeppelin/contracts/=../../../../lib/openzeppelin-contracts/contracts/ forge-std/=../../../../lib/forge-std/src/",
+  ]
+sender: ["0x10000"]
+corpusDir: "coverage"
+testLimit: 1000
