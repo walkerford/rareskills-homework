@@ -36,6 +36,7 @@
         "SLOAD",
         "solady",
         "solmate",
+        "struct",
         "Swappable",
         "walkerford"
     ],

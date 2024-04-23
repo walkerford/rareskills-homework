@@ -88,3 +88,5 @@ amount by using a for loop with a try-catch until a successful entry was made.
 
 The third gate requires a key that passes some typecasting checks. It is passed
 by creating a key from tx.origin with its bytes 2 and 3 zeroed out.
+
+## Solidity Riddles -- Delete User
