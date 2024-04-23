@@ -20,6 +20,11 @@ contract DeleteUserTest is Test {
     }
 
     function test_attack() external {
+        address alice = makeAddr("alice");
+        vm.deal(alice, 1 ether);
+        vm.prank(alice);
+        attacker = new Attacker{value: 1 ether}(victim);
+
         _checkSolved();
     }
 

