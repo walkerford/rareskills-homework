@@ -29,7 +29,8 @@ contract TestDexTest is Test {
     }
 
     function test_swap() public {
-        testDex.swapA(10);
+        console.log("test_swap()");
+        testDex.swapA(10); // -1 compensates for input massages for echidna
         console.log("token1(player):", testDex.token1().balanceOf(player));
         console.log("token2(player):", testDex.token2().balanceOf(player));
         console.log("token1(dex):", testDex.token1().balanceOf(dexAddress));

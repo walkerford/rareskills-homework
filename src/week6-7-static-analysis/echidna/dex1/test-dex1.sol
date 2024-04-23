@@ -32,33 +32,13 @@ contract TestDex {
         dex.addLiquidity(tokenAddress1, 100);
         dex.addLiquidity(tokenAddress2, 100);
 
-        console.log("TestDex() player", player);
-
         token1.transfer(player, 10);
         token2.transfer(player, 10);
 
         dex.renounceOwnership();
     }
 
-    // function swap(uint256 direction, uint256 fromAmount) public {
-    //     address from;
-    //     address to;
-
-    //     if (direction % 2 == 0) {
-    //         from = tokenAddress1;
-    //         to = tokenAddress2;
-    //     } else {
-    //         from = tokenAddress2;
-    //         to = tokenAddress1;
-    //     }
-
-    //     fromAmount = fromAmount % SwappableToken(from).balanceOf(player);
-    //     fromAmount = _getMaxSwap(fromAmount, from, to);
-
-    //     dex.approve(dexAddress, fromAmount);
-    //     dex.swap(from, to, fromAmount);
-    // }
-
+    // Built for echidna to fuzz fromAmount, so unit tests should consider this
     function swapA(uint256 fromAmount) public {
         address from;
         address to;
@@ -67,7 +47,14 @@ contract TestDex {
         to = tokenAddress2;
 
         // Don't exceed player's balance
-        fromAmount = fromAmount % SwappableToken(from).balanceOf(player);
+        // Let zeros pass through
+        if (fromAmount != 0) {
+            // Subtracting/Adding 1 so the range will include the players
+            // balance, but not 0
+            fromAmount =
+                ((fromAmount - 1) % SwappableToken(from).balanceOf(player)) +
+                1;
+        }
 
         // Don't exceed bank's balance
         fromAmount = _getMaxSwap(fromAmount, from, to);
@@ -84,7 +71,14 @@ contract TestDex {
         to = tokenAddress1;
 
         // Don't exceed player's balance
-        fromAmount = fromAmount % SwappableToken(from).balanceOf(player);
+        // Let zeros pass through
+        if (fromAmount != 0) {
+            // Subtracting/Adding 1 so the range will include the players
+            // balance, but not 0
+            fromAmount =
+                ((fromAmount - 1) % SwappableToken(from).balanceOf(player)) +
+                1;
+        }
 
         // Don't exceed bank's balance
         fromAmount = _getMaxSwap(fromAmount, from, to);
@@ -95,12 +89,12 @@ contract TestDex {
 
     // Makes sure the given swap won't overdraw the bank
     function _getMaxSwap(
-        uint256 amount,
+        uint256 fromAmount,
         address from,
         address to
     ) internal view returns (uint256) {
         // Get quote
-        uint256 toAmount = dex.getSwapfromAmount(from, to, amount);
+        uint256 toAmount = dex.getSwapfromAmount(from, to, fromAmount);
 
         // Get bank balance
         uint256 dexBalance = SwappableToken(to).balanceOf(dexAddress);
@@ -108,12 +102,12 @@ contract TestDex {
         // Make sure bank balance isn't exceeded
         if (toAmount > dexBalance) {
             // This formula is the inverse of the dex's price function.
-            amount =
+            fromAmount =
                 (dexBalance * IERC20(to).balanceOf(address(dex))) /
                 IERC20(from).balanceOf(address(dex));
         }
 
-        return amount;
+        return fromAmount;
     }
 
     function echidna_test() public view returns (bool) {

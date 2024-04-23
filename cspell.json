@@ -36,8 +36,11 @@
         "SLOAD",
         "solady",
         "solmate",
+        "Swappable",
         "walkerford"
     ],
-    "ignoreWords": [],
+    "ignoreWords": [
+        "Swapfrom"
+    ],
     "import": []
 }
