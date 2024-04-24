@@ -1,0 +1,8 @@
+testMode: "overflow"
+corpusDir: "coverage"
+testLimit: 10000
+cryticArgs:
+  [
+    "--solc-remaps",
+    "@openzeppelin/contracts/=../../../../lib/openzeppelin-contracts/contracts/ forge-std/=../../../../lib/forge-std/src/",
+  ]

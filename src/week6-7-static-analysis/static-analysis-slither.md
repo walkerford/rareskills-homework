@@ -1,9 +1,10 @@
 # Slither notes
 
+Run slither on work from previous two weeks.
+
 - Missing check on return value
 - Unnecessary "this" before some calls
 - solc version too high
--
 
 week-2
 
@@ -29,5 +30,6 @@ How to make slither aware of reentrancy guard?
 Why does slither complain about local variables that haven't been initialized, when you are ok with them being zero?
 
 Can you add lines in the code that make slither ignore a line?
+yes
 
 What is the right solidity version to use to make slither happy? Is there a way to bypass this check, or update the value that is accepted? In my case, using the recommended slither version broke the version requirement on a dependency.
