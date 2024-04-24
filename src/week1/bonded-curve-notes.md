@@ -42,7 +42,7 @@ That formula is essentially calculating the area underneath this discrete step-w
 
 The following graph shows the price function and that the price of purchasing 5 tokens is the same as the area underneath the step-wise curve up to that point. There are 15 orange boxes, corresponding to the price of 15.
 
-![step-wise curve](curve1.png).
+![step-wise curve](curve1.png)
 
 The reason we use area, instead of just the y-value, is because the units of the y-axis are `price per token` (e.g. ether per token) and the units of the x-axis are `tokens`. To get price by itself, we have to multiply the `price per token` by `tokens`, so that the token units cancel out. In this case, the amount of tokens for each step is 1, so the multiplication seems trivial.
 
@@ -60,7 +60,7 @@ You can see this graphically in the following:
 
 ![](curve2.png)
 
-With a 5 tokens already sold (in green, reserve = 15), to purchase another 5 tokens will cost 40 (in orange there are 40 boxes).
+With 5 tokens already sold (in green, reserve = 15), to purchase another 5 tokens will cost 40 (in orange there are 40 boxes).
 
 This is the same as saying the purchase price is the final supply (55) less the initial supply (15), which makes 40.
 
@@ -88,24 +88,24 @@ We could leave this problem right there, but there is another simplification tha
 
 The simplification is to start reducing the size of the increments that can be purchased, from 1 token to 0.1, to 0.001, and so on, until the increment is infinitesimally small. [This article](https://medium.com/aventus/token-bonding-curves-683b8b309c18) gives us some intuition for what happens when we shrink the size of the x-axis units: the total price also goes down.
 
-The smallest price you could pay occurs when you are purchasing an "infinite" amount of infinitesimally small units. This is what it means to have a bonding curve that is a smooth continuous function of x, instead of a discrete step-wise function. A continuous function looks like the red line overlaid on the previous plot:
+The smallest price you could pay occurs when you are purchasing an "infinite" amount of infinitesimally small units. This is what it means to have a bonding curve that is a continuous (smooth) function of x, instead of a discrete step-wise function. A continuous function looks like the red line overlaid on the previous plot:
 
 ![](curve3.png)
 
 You can see that the line closely approximates the step-wise function, but it cuts off half of the top squares.
 
-To get the purchase price for a quantity of tokens purchase, you can no longer manually sum up the increments. Because you can no longer sum all all the discrete steps, but have to use calculus to integrate the function in order to compute the summation (area). The integral of the function f(x) = x is:
+To get the purchase price for a quantity of tokens purchase, you can no longer manually sum up the increments. Because you can no longer sum all of the discrete steps, but have to use calculus to integrate the function in order to compute the summation (area). The integral of the function f(x) = x is:
 
 ```
 integral(f(x)) = x^2 / 2
 ```
 
-Notice that this looks very close to the step-wise area function above, which has just been shifted by +1.
+Notice that this looks very close to the step-wise area function above, which has just been shifted by + 1.
 
-The very curious result is that if you purchase 1 token (and your price units are ETH), the price should be 0.5 ETH. This is the correct result, because you've not purchased one full token for 1 as in the step-wise case, but a lot of token pieces for a lot of prices less than 1.
+The very curious result is that if you purchase 1 token (and your price units are ETH), the price should be 0.5 ETH. This is the correct result, because you've not purchased one full token for a price of 1, as in the step-wise case, but a lot of tiny token pieces for a lot of prices much smaller than 1. The summation of all of these prices is 0.5.
 
 If your pricing function y-axis units were `1 WEI per token increment`, instead of `1 ETH per token increment`, the price to purchase 1 token would be 0.5 WEI. Since it is not possible to send fractions of WEI, your algorithm would need to either consistently round-up or round-down. Generally you want to round in the direction that favors the contract, so that you don't get in a situation where rounding error results in the contract not being able to pay out the full amount.
 
-In conclusion, it does not matter very much whether you use a step-wise or continuous pricing function, because the results are close enough between them. It is just important to understand the tradeoffs of each. If you want to be able to sell small partitions of one token and minimize the math operations, then use a continuous curve. If you want to avoid strange results like 1 token costing 0.5, then go with a discrete step-wise curve.
+In conclusion, it matters little whether you use a step-wise or continuous pricing function, because the results are close enough between them. It is just important to understand the tradeoffs of each. If you want to be able to sell small partitions of one token and minimize the math operations, then use a continuous curve. If you want to avoid strange results like 1 token costing 0.5, then go with a discrete step-wise curve.
 
 For more complicated price curves, using the continuous version probably simplifies the calculations considerably, and there may likely be cases that don't have simple step-wise area functions.

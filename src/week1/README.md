@@ -1,4 +1,4 @@
-# Homework
+# Homework for week 1
 
 1. Create a markdown file about what problems ERC777 and ERC1363 solves. Why was ERC1363 introduced, and what issues are there with ERC777?
 
@@ -14,11 +14,11 @@
 
 [x] AdminToken.sol
 
-4. Token sale and buyback with bonding curve. The more tokens a user buys, the more expensive the token becomes. To keep things simple, use a linear bonding curve. 
+4. Token sale and buyback with bonding curve. The more tokens a user buys, the more expensive the token becomes. To keep things simple, use a linear bonding curve.
 
 [x] BondCurveToken.sol
 
-[] Consider the case someone might sandwich attack a bonding curve. What can you do about it?
+[x] Consider the case someone might sandwich attack a bonding curve. What can you do about it?
 
 > One mitigation is to apply a freeze-out period where a buyer cannot sell for some period of time, like not within the same block or longer.
 > Adding a separate curve for selling might help dissuade quick sells, but I need to think about that some more.
@@ -29,7 +29,7 @@
 
 > What is the seller selling: ETH, another token or does this contract provide the token?
 
-> The seller needs to be able to configure the terms of the sale, like the sale price and escrow token type.  The seller's asset and the buyers payment will only be released when the conditions are met.
+> The seller needs to be able to configure the terms of the sale, like the sale price and escrow token type. The seller's asset and the buyers payment will only be released when the conditions are met.
 
 > Basic flow:
 > Seller configures deal
