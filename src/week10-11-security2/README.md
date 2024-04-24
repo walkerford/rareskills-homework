@@ -1,19 +1,5 @@
 # Week 10-11 Security Part 2
 
-## Questions for Review
-
-I am a little uncertain of my solution for Overmint3 and Democracy.
-
-In Overmint3, I used one contract to spin off several contracts, which could
-individually mint and transfer a new token. This means the initial contract has
-a nonce that is larger than 1. The player still has a nonce of one because he
-only initiated one call. The test checks the player nonce only, which makes me
-feel like I could have missed another way to do it without the extra contracts.
-
-In Democracy, I didn't have to create any extra contracts. Instead, I created a
-2nd EOA wallet to transfer the votes to. Was this legal to do, or did I miss
-another solution with a contract?
-
 ## Solidity Riddles -- Forwarder
 
 This comprises two contracts, a wallet and a forwarder. The wallet is seeded
@@ -56,8 +42,8 @@ generate everything in one transaction is to exploit another vulnerability in
 the contract, which is that it checks for code-length in order to reject
 contracts, however this can be bypassed by having the attacking contract perform
 the functions in its constructor, during which time the code size of the
-constructor is 0. The attacker must deploy 5 additional contracts that each
-mint and transfer a new NFT from their constructor.
+constructor is 0. The attacker must deploy 5 additional contracts that each mint
+and transfer a new NFT from their constructor.
 
 # Democracy
 
@@ -71,8 +57,8 @@ giving other accounts the ability to vote. Although this contract prevents
 contracts from voting, the voting NFT can still be transferred to another EOA.
 In the case of this contract, three votes need to be cast. The challenger
 transfers one of his votes to a friend, and then votes for himself. The
-challenger then transfers his second vote to the friend. The friend votes
-twice, which breaks the tie, allowing the challenger to win and claim the funds.
+challenger then transfers his second vote to the friend. The friend votes twice,
+which breaks the tie, allowing the challenger to win and claim the funds.
 
 ## Gatekeeper One
 
@@ -90,3 +76,34 @@ The third gate requires a key that passes some typecasting checks. It is passed
 by creating a key from tx.origin with its bytes 2 and 3 zeroed out.
 
 ## Solidity Riddles -- Delete User
+
+This contract uses an array to keep track of ETH deposits. Deposit owners can
+also withdraw.
+
+The vulnerability is that the withdraw allows you to specify the index of the
+deposit to draw from. After transferring, instead of removing the specified
+entry from the array, the last entry is popped off. This allows the user to
+make a double deposit, with the second deposit being zero (a dummy entry). Then,
+when withdraw is called using the index of the first entry, the contract
+delivers the ether for the first entry, and pops the last entry (the dummy
+entry). This allows the attack to keep withdrawing, as long as the attacker
+keeps make additional dummy deposit entries.
+
+## Questions for Review
+
+I am a little uncertain of my solution for Overmint3 and Democracy.
+
+In Overmint3, I used one contract to spin off several contracts, which could
+individually mint and transfer a new token. This means the initial contract has
+a nonce that is larger than 1. The player still has a nonce of one because he
+only initiated one call. The test checks the player nonce only, which makes me
+feel like I could have missed another way to do it without the extra contracts.
+
+In Democracy, I didn't have to create any extra contracts. Instead, I created a
+2nd EOA wallet to transfer the votes to. Was this legal to do, or did I miss
+another solution with a contract?
+
+In Delete User, the instructions note storage pointer. The riddle doesn't seem
+to have anything to do with storage pointers though. There is one misleading
+line (line 31) that does nothing, and I wonder if that was remnant of of some
+other bug that actually tested storage pointers.
