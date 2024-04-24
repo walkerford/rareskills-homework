@@ -33,8 +33,8 @@ Each echidna exercise has its own folder with config and a Makefile to run the
 command. Change into the directory for each exercise before running one of the
 following commands:
 
-`make echidna-fail` tests the contract and shows a failing test.
-`make echidna-pass` tests the fixed contract and shows passing tests.
+`make echidna-fail` tests the contract and shows a failing test. `make
+echidna-pass` tests the fixed contract and shows passing tests.
 
 Check each Makefile for other variants.
 
@@ -54,8 +54,8 @@ Check each Makefile for other variants.
 
 Created a wrapper, since the BondCurveToken constructor requires an argument.
 
-First, I ran the overflow fuzz test. It produced several errors, but these were all
-over/under-flows that were properly being handled in the code. Instead, what
+First, I ran the overflow fuzz test. It produced several errors, but these were
+all over/under-flows that were properly being handled in the code. Instead, what
 this was telling me was that I needed to validate echidna inputs better -- make
 echidna not send obviously invalid inputs. I added input validation and
 eventually the overflow fuzz test passed. This gives me some confidence that my
@@ -69,4 +69,16 @@ Echidna showed me that buying 1 token costs zero, which breaks the invariant
 that I had. This happens because the price of 1 is 0.5, which rounds down to
 integer 0. I just updated the invariant to include the free token.
 
-Echidna showed me I was handling the units incorrectly. I was dividing by 1e18 incorrectly. I was confused originally whether I wanted one token to cost 1 ether or 1 wei. I'm sticking with 1 wei for simplicity.
+Echidna showed me I was handling the units incorrectly. I was dividing by 1e18
+incorrectly. I was confused originally whether I wanted one token to cost 1
+ether or 1 wei. I'm sticking with 1 wei for simplicity.
+
+The only property that I implemented was to make sure the contract balance never
+went to zero while there were still tokens in supply.
+
+## Questions
+
+What are some other property recommendations for the BondCurveToken?
+
+Are there other helpful tips for debugging echidna? Like, how do you view what
+tests were run with echidna? Can you view console.log outputs somehow?
