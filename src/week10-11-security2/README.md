@@ -82,14 +82,35 @@ also withdraw.
 
 The vulnerability is that the withdraw allows you to specify the index of the
 deposit to draw from. After transferring, instead of removing the specified
-entry from the array, the last entry is popped off. This allows the user to
-make a double deposit, with the second deposit being zero (a dummy entry). Then,
-when withdraw is called using the index of the first entry, the contract
-delivers the ether for the first entry, and pops the last entry (the dummy
-entry). This allows the attack to keep withdrawing, as long as the attacker
-keeps make additional dummy deposit entries.
+entry from the array, the last entry is popped off. This allows the user to make
+a double deposit, with the second deposit being zero (a dummy entry). Then, when
+withdraw is called using the index of the first entry, the contract delivers the
+ether for the first entry, and pops the last entry (the dummy entry). This
+allows the attack to keep withdrawing, as long as the attacker keeps make
+additional dummy deposit entries.
 
 ## Viceroy
+
+This contract is a puzzle to release 10 ether. The attacker is minted 1 NFT,
+which gives him the opportunity to appoint a viceroy, who creates a proposal and
+approves voters to vote on the proposal. When a proposal gets 10 votes, it gets
+executed, potentially unlocking the funds. The attacker must complete the
+challenge in one transaction.
+
+The contract attempts to ensure only EOAs are registered as viceroys and voters,
+which would make it impossible to solve in only one transaction. It uses
+`code.data.length` to validate the address is an EOA, but this can be thwarted
+by triggering authorization during a new contract's constructor, when it has a
+code size of zero, fooling the EOA check.
+
+The contract also limits the viceroy to approving only 5 voters, who can only
+vote once each. The proposal needs 10 votes total to pass, so you have to depose
+the first viceroy after the first five voters have voted, appoint a new viceroy,
+and create 5 more voters to cast the rest of the votes.
+
+The proposal is an abi encoded function selector for the `exec()` function on
+the CommunityWallet. Encoding with the right arguments will cause the wallet to
+transfer all of its funds to the address you specify.
 
 ## Questions for Review
 
