@@ -40,7 +40,7 @@ contract TestPair is Test {
         uint256 amount0 = 3e18;
         uint256 amount1 = 3e18;
 
-        // this is also the amount of tokens we exect back from each token contract
+        // this is also the amount of tokens we expect back from each token contract
         uint256 expectedShares = 3e18 - MINIMUM_INITIAL_SHARES;
 
         _addLiquidity(amount0, amount1);
@@ -51,15 +51,15 @@ contract TestPair is Test {
         vm.expectEmit(true, true, true, true, address(pair));
         emit ERC20.Transfer(address(pair), address(0), expectedShares);
 
-        // Expect a tranfer of token0 back to sender
+        // Expect a transfer of token0 back to sender
         vm.expectEmit(true, true, true, true, address(token0));
         emit ERC20.Transfer(address(pair), address(this), expectedShares);
 
-        // Expect a tranfer of token1 back to sender
+        // Expect a transfer of token1 back to sender
         vm.expectEmit(true, true, true, true, address(token1));
         emit ERC20.Transfer(address(pair), address(this), expectedShares);
 
-        // Expect reserves sync to the minimum inital shares
+        // Expect reserves sync to the minimum initial shares
         vm.expectEmit(true, false, false, true, address(pair));
         emit Pair.Sync(
             uint112(MINIMUM_INITIAL_SHARES),
