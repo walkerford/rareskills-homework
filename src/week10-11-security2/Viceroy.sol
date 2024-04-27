@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.15;
 
-import "forge-std/console.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin-v4/contracts/access/Ownable.sol";
+import "@openzeppelin-v4/contracts/utils/Address.sol";
+import "@openzeppelin-v4/contracts/token/ERC721/ERC721.sol";
 
 contract OligarchyNFT is ERC721 {
     error CannotTransfer();
@@ -13,21 +12,13 @@ contract OligarchyNFT is ERC721 {
         _mint(attacker, 1);
     }
 
-    // This function is updated from the original to use _update() instead of
-    // _beforeTokenTransfer(), since OpenZeppelin v5 doesn't have that function.
-    // It should be equivalent.
-    function _update(
+    function _beforeTokenTransfer(
         address from,
-        uint256 tokenId,
-        address auth
-    ) internal virtual override returns (address) {
-        // Disrupt a transfer
-        if (auth != address(0)) {
-            require(from == address(0), "Cannot transfer nft"); // oligarch cannot transfer the NFT
-        }
-
-        // Update as normal
-        return super._update(from, tokenId, auth);
+        address,
+        uint256,
+        uint256
+    ) internal virtual override {
+        require(from == address(0), "Cannot transfer nft"); // oligarch cannot transfer the NFT
     }
 }
 
