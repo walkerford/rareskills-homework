@@ -89,6 +89,8 @@ delivers the ether for the first entry, and pops the last entry (the dummy
 entry). This allows the attack to keep withdrawing, as long as the attacker
 keeps make additional dummy deposit entries.
 
+## Viceroy
+
 ## Questions for Review
 
 I am a little uncertain of my solution for Overmint3 and Democracy.
