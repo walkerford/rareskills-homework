@@ -21,6 +21,7 @@
         "hodlers",
         "IERC",
         "inheritdoc",
+        "iszero",
         "keccak",
         "lcov",
         "Merkle",

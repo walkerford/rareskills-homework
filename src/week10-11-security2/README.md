@@ -120,6 +120,19 @@ The update is that Dex2 does not validate that the to/from addresses are only th
 
 The swap is performed on both tokens in the dex to drain both.
 
+## Damn Vulnerable Defi -- #2 Native Receiver
+
+Two contracts included here: a flash-loan pool and receiver. Both are dealt
+ether to start. The flash loan fee costs 1 ether. To goal is to get the
+flash-loan pool to steal the ether from the receiver.
+
+The vulnerability is in the receiver, who fails to validate the msg.sender in
+its onFlashLoan() callback. This allows anyone to request a flashLoan and then
+use the vulnerable receiver's address as the receiver. The pool will do a
+flash-loan and charge the receiver 1 ether. The receiver blindly sends the fee
+to the pool every time the callback is called. Call the loan 10 times to
+deplete the receivers stock of 10 ether.
+
 ## Questions for Review
 
 I am a little uncertain of my solution for Overmint3 and Democracy.
@@ -138,3 +151,12 @@ In Delete User, the instructions note storage pointer. The riddle doesn't seem
 to have anything to do with storage pointers though. There is one misleading
 line (line 31) that does nothing, and I wonder if that was remnant of of some
 other bug that actually tested storage pointers.
+
+## NaiveReceiver
+
+Why doesn't this expectRevert work?
+
+```
+    vm.expectRevert();
+    receiver.onFlashLoan(address(this), pool.ETH(), 10 ether, 1 ether, "");
+```
