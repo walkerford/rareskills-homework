@@ -74,7 +74,7 @@ contract Exploiter {
 
             fromAmount = ERC20(from).balanceOf(address(this));
 
-            // Determine the amount of tokens that will be recieved (toAmount)
+            // Determine the amount of tokens that will be received (toAmount)
             dexBalance = ERC20(to).balanceOf(address(dex));
             toAmount = dex.getSwapfromAmount(from, to, fromAmount);
 

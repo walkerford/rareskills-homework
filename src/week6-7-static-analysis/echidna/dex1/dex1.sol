@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "forge-std/console.sol";
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -24,7 +24,6 @@ contract Dex is Ownable {
     }
 
     function swap(address from, address to, uint256 amount) public {
-        console.log("swap() msg.sender", msg.sender);
         require(
             (from == token1 && to == token2) ||
                 (from == token2 && to == token1),
@@ -34,7 +33,6 @@ contract Dex is Ownable {
             IERC20(from).balanceOf(msg.sender) >= amount,
             "Not enough to swap"
         );
-        console.log("swap() msg.sender", msg.sender);
         uint256 swapAmount = getSwapfromAmount(from, to, amount);
         IERC20(from).transferFrom(msg.sender, address(this), amount);
         IERC20(to).approve(address(this), swapAmount);

@@ -1,7 +1,7 @@
 # Week 8-9 -- Security Puzzles
 
 We were assigned 13 puzzles to solve over two weeks. Here are some notes on the
-vulnerability that was tested in each.
+vulnerabilities that were discovered in each.
 
 ## Capture the Ether -- Guess the Secret Number
 
@@ -75,7 +75,7 @@ guesses zero and then waits until 256 blocks pass to claim his reward.
 
 This contract is ERC-like and allocates an initial supply of tokens.
 
-The vulnerability is that it's internal \_transfer() function assumes the
+The vulnerability is that it's internal transfer() function assumes the
 msg.sender is the token owner. This is not the case for transferFrom() calls.
 The unchecked internal accounting under-flows when transferring from an account
 with zero tokens, on behalf of an account that has tokens. The attacking
