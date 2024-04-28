@@ -45,7 +45,7 @@ the functions in its constructor, during which time the code size of the
 constructor is 0. The attacker must deploy 5 additional contracts that each mint
 and transfer a new NFT from their constructor.
 
-# Democracy
+## Democracy
 
 This contract simulates a voting system that is rigged. When the challenger is
 nominated, the challenger is given two votes, but the vote count is rigger so
@@ -111,6 +111,14 @@ and create 5 more voters to cast the rest of the votes.
 The proposal is an abi encoded function selector for the `exec()` function on
 the CommunityWallet. Encoding with the right arguments will cause the wallet to
 transfer all of its funds to the address you specify.
+
+## Dex2
+
+This contract is a variation on Dex1. It allows two tokens to be swapped. The pricing function is the ratio of each token held by the dex.
+
+The update is that Dex2 does not validate that the to/from addresses are only the token addresses supported by the dex. The can be exploited by deploying a contract that simulates an ERC20 token, but provides a balanceOf 1 for any address. The attacker makes a swap, specifying the exploit token as the "from" token. The dex will determine that the dex's balance in the exploit token is 1, which becomes the denominator of the pricing function, which results in a swap amount that equals the balance of the "to" token in the swap. The attacker then gets all of the "to" token.
+
+The swap is performed on both tokens in the dex to drain both.
 
 ## Questions for Review
 
