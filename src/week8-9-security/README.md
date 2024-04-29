@@ -3,6 +3,8 @@
 We were assigned 13 puzzles to solve over two weeks. Here are some notes on the
 vulnerabilities that were discovered in each.
 
+All of the puzzles except for Overmint1 are implemented as Foundry tests.
+
 ## Capture the Ether -- Guess the Secret Number
 
 This contract pays a reward to the first person who can guess the secret number
@@ -52,6 +54,10 @@ to mint 5 NFTs.
 The vulnerability is that the limit is imposed by checking the player's current
 balance. During the mint transaction, the player can transfer newly minted NFTs
 to another address and thereby continue to mint beyond the limit.
+
+```
+npx hardhat test test/week8-9-security/Overmint1-ERC1155.js
+```
 
 ## Capture the Ether -- Token Bank
 
