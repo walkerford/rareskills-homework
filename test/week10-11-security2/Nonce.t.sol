@@ -7,20 +7,24 @@ contract NonceTest is Test {
     Counter counter;
 
     function test() external {
-        // Nonce is 1
-        assertEq(vm.getNonce(address(this)), 1);
+        address alice = makeAddr("alice");
+
+        // Nonce is 0
+        assertEq(vm.getNonce(alice), 0);
 
         // Deploy counter
+        vm.prank(alice);
         counter = new Counter();
 
-        // Nonce is 2
-        assertEq(vm.getNonce(address(this)), 2);
+        // Nonce is 1
+        assertEq(vm.getNonce(alice), 1);
 
         // Call add
+        vm.prank(alice);
         counter.add();
 
-        // Nonce is still 2, not 3
-        assertEq(vm.getNonce(address(this)), 2);
+        // Nonce is still 1, not 2
+        assertEq(vm.getNonce(alice), 1);
     }
 }
 
