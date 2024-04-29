@@ -141,6 +141,18 @@ flash-loan and charge the receiver 1 ether. The receiver blindly sends the fee
 to the pool every time the callback is called. Call the loan 10 times to deplete
 the receivers stock of 10 ether.
 
+## Rareskills Riddles -- Reward Token
+
+This contract allows you to stake an NFT in order to earn rewards. The NFT can
+only be staked once and there is a cap on the number of tokens. In order to
+solve the puzzle, you must withdraw all of the reward tokens in one transaction.
+
+There are two claim functions, one that withdraws the NFT and one that does not.
+The withdraw function makes an external call and fails to update the contract
+state before making this call. This allows the attacker, as a part of the
+withdrawn process, the opportunity to reenter by calling the other claim
+function, which doubles the earnings.
+
 ## Questions for Review
 
 I am a little uncertain of my solution for Overmint3 and Democracy.
@@ -168,3 +180,8 @@ Why doesn't this expectRevert work?
     vm.expectRevert();
     receiver.onFlashLoan(address(this), pool.ETH(), 10 ether, 1 ether, "");
 ```
+
+## RewardToken
+
+I noticed that Foundry does not advance the nonce as expected when making a
+method call.

