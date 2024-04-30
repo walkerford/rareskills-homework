@@ -153,7 +153,15 @@ state before making this call. This allows the attacker, as a part of the
 withdrawn process, the opportunity to reenter by calling the other claim
 function, which doubles the earnings.
 
-## Questions for Review
+## Rareskills Riddles -- ReadOnly
+
+This contract provides a liquidity pool where ether can be deposited in order to mint shares. The shareholder can later cash in the shares to receive their liquidity plus their share of the fees.
+
+Another defi contract uses the pool as a price oracle. The defi's price can be refreshed by anyone at any time, and this should be ok because the pool's price feed should always be accurate. However, the price feed is not updated before the withdraw callback, and the attacker can trigger a price refresh on the defi contract during this time. The attacker would be able to take advantage of the defi contract afterwards.
+
+`removeLiquidity()` does not burn the tokens (line 72) until after the external call (line 69). There is no way to add reentrancy protection in the defi contract because it is a separate contract from the pool.
+
+# Questions for Review
 
 I am a little uncertain of my solution for Overmint3 and Democracy.
 

