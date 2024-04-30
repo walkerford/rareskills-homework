@@ -155,11 +155,33 @@ function, which doubles the earnings.
 
 ## Rareskills Riddles -- ReadOnly
 
-This contract provides a liquidity pool where ether can be deposited in order to mint shares. The shareholder can later cash in the shares to receive their liquidity plus their share of the fees.
+This contract provides a liquidity pool where ether can be deposited in order to
+mint shares. The shareholder can later cash in the shares to receive their
+liquidity plus their share of the fees.
 
-Another defi contract uses the pool as a price oracle. The defi's price can be refreshed by anyone at any time, and this should be ok because the pool's price feed should always be accurate. However, the price feed is not updated before the withdraw callback, and the attacker can trigger a price refresh on the defi contract during this time. The attacker would be able to take advantage of the defi contract afterwards.
+Another defi contract uses the pool as a price oracle. The defi's price can be
+refreshed by anyone at any time, and this should be ok because the pool's price
+feed should always be accurate. However, the price feed is not updated before
+the withdraw callback, and the attacker can trigger a price refresh on the defi
+contract during this time. The attacker would be able to take advantage of the
+defi contract afterwards.
 
-`removeLiquidity()` does not burn the tokens (line 72) until after the external call (line 69). There is no way to add reentrancy protection in the defi contract because it is a separate contract from the pool.
+`removeLiquidity()` does not burn the tokens (line 72) until after the external
+call (line 69). There is no way to add reentrancy protection in the defi
+contract because it is a separate contract from the pool.
+
+## Damn Vulnerable Defi -- #5 TheRewarder
+
+This contract is a token pool that pays rewards to depositors every 5 days.
+
+The contract is vulnerable to a flash-loan attack. Obtain a flash loan, deposit
+tokens, claim reward, then withdraw and pay back flash-loan.
+
+One problem is line 66 in TheRewarderPool.sol, where the snapshot is taken in
+the `distributeRewards()` function. The snapshot should be taken separately, so
+that flash-loans can't be used to insert themselves in.
+
+I implemented first as a separate project so that I could compile the old openzeppelin-v3 with solc v0.6. Once it passed, I upgraded the contracts to openzeppelin-v4 so I could use solc v0.8 with the rest of the project.
 
 # Questions for Review
 
