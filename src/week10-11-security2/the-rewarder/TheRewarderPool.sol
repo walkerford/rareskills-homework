@@ -1,7 +1,8 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: Unlicense
+pragma solidity ^0.8.0;
 
 import "./RewardToken.sol";
-import "../DamnValuableToken.sol";
+import {DamnValuableToken} from "../DamnValuableToken.sol";
 import "./AccountingToken.sol";
 
 contract TheRewarderPool {
@@ -26,7 +27,7 @@ contract TheRewarderPool {
     // Track number of rounds
     uint256 public roundNumber;
 
-    constructor(address tokenAddress) public {
+    constructor(address tokenAddress) {
         // Assuming all three tokens have 18 decimals
         liquidityToken = DamnValuableToken(tokenAddress);
         accToken = new AccountingToken();

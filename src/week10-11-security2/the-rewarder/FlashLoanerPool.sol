@@ -1,7 +1,8 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin-v4/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin-v4/contracts/utils/Address.sol";
 import "../DamnValuableToken.sol";
 
 /**
@@ -12,7 +13,7 @@ contract FlashLoanerPool is ReentrancyGuard {
 
     DamnValuableToken public liquidityToken;
 
-    constructor(address liquidityTokenAddress) public {
+    constructor(address liquidityTokenAddress) {
         liquidityToken = DamnValuableToken(liquidityTokenAddress);
     }
 
@@ -21,7 +22,7 @@ contract FlashLoanerPool is ReentrancyGuard {
         require(amount <= balanceBefore, "Not enough token balance");
 
         require(
-            msg.sender.isContract(),
+            payable(msg.sender).isContract(),
             "Borrower must be a deployed contract"
         );
 

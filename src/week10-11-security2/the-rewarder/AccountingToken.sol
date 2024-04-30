@@ -1,7 +1,8 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20Snapshot.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin-v4/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
+import "@openzeppelin-v4/contracts/access/AccessControl.sol";
 
 /**
  * A limited pseudo-ERC20 token to keep track of deposits and withdrawals
@@ -12,7 +13,7 @@ contract AccountingToken is ERC20Snapshot, AccessControl {
     bytes32 public constant SNAPSHOT_ROLE = keccak256("SNAPSHOT_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    constructor() public ERC20("rToken", "rTKN") {
+    constructor() ERC20("rToken", "rTKN") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINTER_ROLE, msg.sender);
         _setupRole(SNAPSHOT_ROLE, msg.sender);
@@ -35,12 +36,12 @@ contract AccountingToken is ERC20Snapshot, AccessControl {
     }
 
     // Do not need transfer of this token
-    function _transfer(address, address, uint256) internal override {
+    function _transfer(address, address, uint256) internal pure override {
         revert("Not implemented");
     }
 
     // Do not need allowance of this token
-    function _approve(address, address, uint256) internal override {
+    function _approve(address, address, uint256) internal pure override {
         revert("Not implemented");
     }
 }
