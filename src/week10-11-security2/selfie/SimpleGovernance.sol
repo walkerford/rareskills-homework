@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+pragma solidity ^0.8.0;
 
 import "../DamnValuableTokenSnapshot.sol";
 
@@ -20,7 +21,7 @@ contract SimpleGovernance {
     event ActionQueued(uint256 actionId, address indexed caller);
     event ActionExecuted(uint256 actionId, address indexed caller);
 
-    constructor(address governanceTokenAddress) public {
+    constructor(address governanceTokenAddress) {
         require(
             governanceTokenAddress != address(0),
             "Governance token cannot be zero address"

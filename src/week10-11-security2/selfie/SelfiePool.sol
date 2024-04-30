@@ -1,8 +1,9 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Snapshot.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin-v4/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin-v4/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
+import "@openzeppelin-v4/contracts/utils/Address.sol";
 import "./SimpleGovernance.sol";
 
 contract SelfiePool is ReentrancyGuard {
@@ -21,7 +22,7 @@ contract SelfiePool is ReentrancyGuard {
         _;
     }
 
-    constructor(address tokenAddress, address governanceAddress) public {
+    constructor(address tokenAddress, address governanceAddress) {
         token = ERC20Snapshot(tokenAddress);
         governance = SimpleGovernance(governanceAddress);
     }
@@ -32,7 +33,10 @@ contract SelfiePool is ReentrancyGuard {
 
         token.transfer(msg.sender, borrowAmount);
 
-        require(msg.sender.isContract(), "Sender must be a deployed contract");
+        require(
+            payable(msg.sender).isContract(),
+            "Sender must be a deployed contract"
+        );
         (bool success, ) = msg.sender.call(
             abi.encodeWithSignature(
                 "receiveTokens(address,uint256)",
