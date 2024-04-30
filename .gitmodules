@@ -14,3 +14,6 @@
 	path = lib/openzeppelin-contracts-v4
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts.git
 	branch = release-v4.8
+[submodule "lib/openzeppelin-contracts-v3"]
+	path = lib/openzeppelin-contracts-v3
+	url = https://github.com/openzeppelin/openzeppelin-contracts
