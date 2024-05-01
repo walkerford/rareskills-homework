@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "week10-11-security2/DamnValuableTokenSnapshot.sol";
 import "week10-11-security2/selfie/SimpleGovernance.sol";
 import "week10-11-security2/selfie/SelfiePool.sol";
+import "week10-11-security2/selfie/SelfiePoolAttacker.sol";
 
 contract SelfieTest is Test {
     uint256 constant TOKEN_INITIAL_SUPPLY = 2_000_000 ether;
@@ -32,7 +33,21 @@ contract SelfieTest is Test {
         assertEq(dvt.balanceOf(attackerWallet), 0);
     }
 
-    function test_attack() external {}
+    function test_attack() external {
+        vm.prank(attackerWallet);
+        SelfieAttacker attacker = new SelfieAttacker(pool);
+
+        // Attack
+        attacker.attack();
+
+        // Wait 2 days
+        skip(2 days);
+
+        // Drain funds
+        attacker.finish();
+
+        _checkSolved();
+    }
 
     function _checkSolved() internal {
         // Attacker should have all the tokens

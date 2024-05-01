@@ -181,9 +181,25 @@ One problem is line 66 in TheRewarderPool.sol, where the snapshot is taken in
 the `distributeRewards()` function. The snapshot should be taken separately, so
 that flash-loans can't be used to insert themselves in.
 
-I implemented first as a separate project so that I could compile the old openzeppelin-v3 with solc v0.6. Once it passed, I upgraded the contracts to openzeppelin-v4 so I could use solc v0.8 with the rest of the project.
+I implemented first as a separate project so that I could compile the old
+openzeppelin-v3 with solc v0.6. Once it passed, I upgraded the contracts to
+openzeppelin-v4 so I could use solc v0.8 with the rest of the project.
+
+The problem is again that the snapshot can be taken in the same transaction as a
+flash-loan. Though it doesn't have to be a flash-loan. An attacker could take
+out a regular loan, if available, and simply pay interest until qualifying to
+submit a proposal.
 
 ## Damn Vulnerable Defi -- #6 Selfie
+
+This contract is a flash-loan provider with a governance contract. The
+governance contract allows the majority token holder to submit actions that will
+be executed after two days.
+
+The governance contract is vulnerable to a flash-loan attack, where the attacker
+obtains a flash-loan of the governance token, triggers a snapshot showing that
+he is the majority token holder, then submits an action proposal that will drain
+the liquidity pool and send it to him.
 
 # Questions for Review
 
@@ -217,3 +233,9 @@ Why doesn't this expectRevert work?
 
 I noticed that Foundry does not advance the nonce as expected when making a
 method call.
+
+## Flash loan attacks
+
+It doesn't seem like there is a way to prevent token loaning to spoof
+governance. It all comes down to how much time between snapshots. Are there
+other mechanisms used to prove governance share?
