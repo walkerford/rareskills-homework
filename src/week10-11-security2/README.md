@@ -183,6 +183,8 @@ that flash-loans can't be used to insert themselves in.
 
 I implemented first as a separate project so that I could compile the old openzeppelin-v3 with solc v0.6. Once it passed, I upgraded the contracts to openzeppelin-v4 so I could use solc v0.8 with the rest of the project.
 
+## Damn Vulnerable Defi -- #6 Selfie
+
 # Questions for Review
 
 I am a little uncertain of my solution for Overmint3 and Democracy.
