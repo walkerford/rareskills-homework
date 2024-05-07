@@ -11,12 +11,20 @@ contract CalldataLengthTest is Test {
     CalldataLength public calldataLength;
 
     function setUp() public {
-        calldataLength = CalldataLength(HuffDeployer.config().deploy("CalldataLength"));
+        calldataLength = CalldataLength(
+            HuffDeployer.config().deploy("week12-huff/CalldataLength")
+        );
     }
 
     function testCalldataLength(bytes memory data) public {
-        (bool success, bytes memory retdata) = address(calldataLength).call(data);
+        (bool success, bytes memory retdata) = address(calldataLength).call(
+            data
+        );
         require(success, "call failed");
-        assertEq(abi.decode(retdata, (uint256)), data.length, "Expected retdata to be the length of data sent");
+        assertEq(
+            abi.decode(retdata, (uint256)),
+            data.length,
+            "Expected retdata to be the length of data sent"
+        );
     }
 }

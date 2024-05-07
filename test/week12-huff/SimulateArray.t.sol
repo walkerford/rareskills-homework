@@ -22,14 +22,20 @@ contract SimulateArrayTest is Test, NonMatchingSelectorHelper {
     SimulateArray public simulateArray;
 
     function setUp() public {
-        simulateArray = SimulateArray(HuffDeployer.config().deploy("SimulateArray"));
+        simulateArray = SimulateArray(
+            HuffDeployer.config().deploy("week12-huff/SimulateArray")
+        );
     }
 
     function testSimulateArray(uint256[] memory array) external {
         vm.expectRevert(bytes4(keccak256("ZeroArray()")));
         simulateArray.popp();
 
-        assertEq(simulateArray.length(), 0, "length is initially meant to be 0");
+        assertEq(
+            simulateArray.length(),
+            0,
+            "length is initially meant to be 0"
+        );
 
         for (uint256 i; i < array.length; ++i) {
             simulateArray.pushh(array[i]);
@@ -62,7 +68,11 @@ contract SimulateArrayTest is Test, NonMatchingSelectorHelper {
         func_selectors[3] = SimulateArray.length.selector;
         func_selectors[4] = SimulateArray.write.selector;
 
-        bool success = nonMatchingSelectorHelper(func_selectors, callData, address(simulateArray));
+        bool success = nonMatchingSelectorHelper(
+            func_selectors,
+            callData,
+            address(simulateArray)
+        );
         assert(!success);
     }
 }

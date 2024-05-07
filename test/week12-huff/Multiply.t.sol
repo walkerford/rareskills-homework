@@ -7,20 +7,29 @@ import {HuffDeployer} from "foundry-huff/HuffDeployer.sol";
 import {NonMatchingSelectorHelper} from "./test-utils/NonMatchingSelectorHelper.sol";
 
 interface Multiply {
-    function multiply(uint256 num1, uint256 num2) external pure returns (uint256);
+    function multiply(
+        uint256 num1,
+        uint256 num2
+    ) external pure returns (uint256);
 }
 
 contract MultiplyTest is Test, NonMatchingSelectorHelper {
     Multiply public multiply;
 
     function setUp() public {
-        multiply = Multiply(HuffDeployer.config().deploy("Multiply"));
+        multiply = Multiply(
+            HuffDeployer.config().deploy("week12-huff/Multiply")
+        );
     }
 
     function testMultiply(uint256 a, uint256 b) public {
         unchecked {
             if (b == 0 || a == (a * b) / b) {
-                assertEq(multiply.multiply(a, b), a * b, "Wrong result for Multiply(a, b)");
+                assertEq(
+                    multiply.multiply(a, b),
+                    a * b,
+                    "Wrong result for Multiply(a, b)"
+                );
             } else {
                 vm.expectRevert();
                 multiply.multiply(a, b);
@@ -33,7 +42,11 @@ contract MultiplyTest is Test, NonMatchingSelectorHelper {
         bytes4[] memory func_selectors = new bytes4[](1);
         func_selectors[0] = Multiply.multiply.selector;
 
-        bool success = nonMatchingSelectorHelper(func_selectors, callData, address(multiply));
+        bool success = nonMatchingSelectorHelper(
+            func_selectors,
+            callData,
+            address(multiply)
+        );
         assert(!success);
     }
 }

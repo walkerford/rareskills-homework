@@ -14,7 +14,7 @@ contract Add1Test is Test, NonMatchingSelectorHelper {
     Add1 public add1;
 
     function setUp() public {
-        add1 = Add1(HuffDeployer.config().deploy("Add1"));
+        add1 = Add1(HuffDeployer.config().deploy("week12-huff/Add1"));
     }
 
     function testAdd1(uint256 n) public {
@@ -28,7 +28,11 @@ contract Add1Test is Test, NonMatchingSelectorHelper {
         bytes4[] memory func_selectors = new bytes4[](1);
         func_selectors[0] = Add1.add1.selector;
 
-        bool success = nonMatchingSelectorHelper(func_selectors, callData, address(add1));
+        bool success = nonMatchingSelectorHelper(
+            func_selectors,
+            callData,
+            address(add1)
+        );
         assert(!success);
     }
 }

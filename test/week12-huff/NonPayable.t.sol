@@ -11,7 +11,9 @@ contract NonPayableTest is Test {
     NonPayable public nonPayable;
 
     function setUp() public {
-        nonPayable = NonPayable(HuffDeployer.config().deploy("NonPayable"));
+        nonPayable = NonPayable(
+            HuffDeployer.config().deploy("week12-huff/NonPayable")
+        );
     }
 
     function testNonPayable(uint256 value) public {
@@ -22,7 +24,7 @@ contract NonPayableTest is Test {
             expected = true;
         }
 
-        (bool success,) = address(nonPayable).call{value: value}("");
+        (bool success, ) = address(nonPayable).call{value: value}("");
         assertEq(success, expected, "call did not pass as expected");
     }
 }

@@ -15,26 +15,40 @@ contract BasicBankTest is Test {
     BasicBank public basicBank;
 
     function setUp() public {
-        basicBank = BasicBank(HuffDeployer.config().deploy("BasicBank"));
+        basicBank = BasicBank(
+            HuffDeployer.config().deploy("week12-huff/BasicBank")
+        );
     }
 
     function testDeposit(uint256 value) external {
         vm.deal(address(this), value);
-        (bool success,) = address(basicBank).call{value: value}("");
+        (bool success, ) = address(basicBank).call{value: value}("");
         require(success, "deposit failed");
-        assertEq(address(basicBank).balance, value, "Wrong balance of basic bank contract");
-        assertEq(basicBank.balanceOf(address(this)), value, "Wrong balance of depositor");
+        assertEq(
+            address(basicBank).balance,
+            value,
+            "Wrong balance of basic bank contract"
+        );
+        assertEq(
+            basicBank.balanceOf(address(this)),
+            value,
+            "Wrong balance of depositor"
+        );
     }
 
     function testRemoveEther(uint256 value) external {
         vm.deal(address(this), value);
         vm.expectRevert();
         basicBank.withdraw(1);
-        (bool success,) = address(basicBank).call{value: value}("");
+        (bool success, ) = address(basicBank).call{value: value}("");
         require(success, "deposit failed");
         basicBank.withdraw(value);
         assertEq(address(this).balance, value, "Wrong balance of depositor");
-        assertEq(basicBank.balanceOf(address(this)), 0 ether, "Balance of basic bank contract should be 0");
+        assertEq(
+            basicBank.balanceOf(address(this)),
+            0 ether,
+            "Balance of basic bank contract should be 0"
+        );
     }
 
     receive() external payable {}

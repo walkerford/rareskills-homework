@@ -13,7 +13,9 @@ contract SendEtherTest is Test, NonMatchingSelectorHelper {
     SendEther public sendEther;
 
     function setUp() public {
-        sendEther = SendEther(HuffDeployer.config().deploy("SendEther"));
+        sendEther = SendEther(
+            HuffDeployer.config().deploy("week12-huff/SendEther")
+        );
     }
 
     function testSendEther(uint256 value, address receiver) public {
@@ -28,7 +30,11 @@ contract SendEtherTest is Test, NonMatchingSelectorHelper {
         sendEther.sendEther{value: value}(receiver);
         uint256 balance_ = receiver.balance;
 
-        assertEq(balance_ - _balance, value, "balance of address(0xDEAD) is not 1 ether");
+        assertEq(
+            balance_ - _balance,
+            value,
+            "balance of address(0xDEAD) is not 1 ether"
+        );
     }
 
     /// @notice Test that a non-matching selector reverts
@@ -36,7 +42,11 @@ contract SendEtherTest is Test, NonMatchingSelectorHelper {
         bytes4[] memory func_selectors = new bytes4[](1);
         func_selectors[0] = SendEther.sendEther.selector;
 
-        bool success = nonMatchingSelectorHelper(func_selectors, callData, address(sendEther));
+        bool success = nonMatchingSelectorHelper(
+            func_selectors,
+            callData,
+            address(sendEther)
+        );
         assert(!success);
     }
 }

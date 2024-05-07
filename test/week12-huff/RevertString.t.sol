@@ -11,11 +11,15 @@ contract RevertStringTest is Test {
     RevertString public revertString;
 
     function setUp() public {
-        revertString = RevertString(HuffDeployer.config().deploy("RevertString"));
+        revertString = RevertString(
+            HuffDeployer.config().deploy("week12-huff/RevertString")
+        );
     }
 
     function testRevertString() public {
-        (bool success, bytes memory revertData) = address(revertString).call("");
+        (bool success, bytes memory revertData) = address(revertString).call(
+            ""
+        );
         require(!success, "call expected to fail");
         assertEq(
             keccak256(bytes("Only Huff")),

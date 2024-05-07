@@ -16,7 +16,7 @@ contract FooBarTest is Test, NonMatchingSelectorHelper {
     FooBar public fooBar;
 
     function setUp() public {
-        fooBar = FooBar(HuffDeployer.config().deploy("FooBar"));
+        fooBar = FooBar(HuffDeployer.config().deploy("week12-huff/FooBar"));
     }
 
     function testFooBar() public {
@@ -30,7 +30,11 @@ contract FooBarTest is Test, NonMatchingSelectorHelper {
         func_selectors[0] = FooBar.foo.selector;
         func_selectors[1] = FooBar.bar.selector;
 
-        bool success = nonMatchingSelectorHelper(func_selectors, callData, address(fooBar));
+        bool success = nonMatchingSelectorHelper(
+            func_selectors,
+            callData,
+            address(fooBar)
+        );
         assert(!success);
     }
 }

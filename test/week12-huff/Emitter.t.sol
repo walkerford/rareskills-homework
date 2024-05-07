@@ -15,7 +15,7 @@ contract EmitterTest is Test, NonMatchingSelectorHelper {
     event Value(uint256 indexed, uint256);
 
     function setUp() public {
-        emitter = Emitter(HuffDeployer.config().deploy("Emitter"));
+        emitter = Emitter(HuffDeployer.config().deploy("week12-huff/Emitter"));
     }
 
     function testEmitter() public {
@@ -29,7 +29,11 @@ contract EmitterTest is Test, NonMatchingSelectorHelper {
         bytes4[] memory func_selectors = new bytes4[](1);
         func_selectors[0] = Emitter.value.selector;
 
-        bool success = nonMatchingSelectorHelper(func_selectors, callData, address(emitter));
+        bool success = nonMatchingSelectorHelper(
+            func_selectors,
+            callData,
+            address(emitter)
+        );
         assert(!success);
     }
 }

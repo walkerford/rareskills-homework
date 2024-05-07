@@ -11,7 +11,9 @@ contract MyEtherBalanceTest is Test {
     MyEtherBalance public myEtherBalance;
 
     function setUp() public {
-        myEtherBalance = MyEtherBalance(HuffDeployer.config().deploy("MyEtherBalance"));
+        myEtherBalance = MyEtherBalance(
+            HuffDeployer.config().deploy("week12-huff/MyEtherBalance")
+        );
     }
 
     function testMyEtherBalance(uint256 balance) public {
@@ -20,6 +22,10 @@ contract MyEtherBalanceTest is Test {
         vm.deal(address(this), balance);
         (success, data) = address(myEtherBalance).call("");
         require(success, "call failed");
-        assertEq(abi.decode(data, (uint256)), balance, "Wrong returned balance of caller");
+        assertEq(
+            abi.decode(data, (uint256)),
+            balance,
+            "Wrong returned balance of caller"
+        );
     }
 }

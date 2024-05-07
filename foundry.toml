@@ -6,5 +6,6 @@ solc_version = "0.8.24"
 ignored_error_codes = [
     5159,
 ] # 5159 is "selfdestruct", which is used in one of the riddles
-
+ffi = true
+evm_version = 'shanghai'
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

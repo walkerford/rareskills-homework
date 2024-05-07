@@ -16,7 +16,9 @@ contract SimpleStoreTest is Test, NonMatchingSelectorHelper {
     SimpleStore public simpleStore;
 
     function setUp() public {
-        simpleStore = SimpleStore(HuffDeployer.config().deploy("SimpleStore"));
+        simpleStore = SimpleStore(
+            HuffDeployer.config().deploy("week12-huff/SimpleStore")
+        );
     }
 
     function testSimpleStore(uint256 value) public {
@@ -30,7 +32,11 @@ contract SimpleStoreTest is Test, NonMatchingSelectorHelper {
         func_selectors[0] = SimpleStore.store.selector;
         func_selectors[1] = SimpleStore.read.selector;
 
-        bool success = nonMatchingSelectorHelper(func_selectors, callData, address(simpleStore));
+        bool success = nonMatchingSelectorHelper(
+            func_selectors,
+            callData,
+            address(simpleStore)
+        );
         assert(!success);
     }
 }
