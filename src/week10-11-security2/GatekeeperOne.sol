@@ -44,7 +44,12 @@ contract Knight {
         // msg.sender
 
         // To pass gate2, a correct amount of gas needs to be passed
-        uint64 gasKey = 50000 + 7605;
+
+        // Value for evm=paris
+        // uint64 gasKey = 50000 + 7605;
+
+        // Value for evm=shanghai
+        uint64 gasKey = 50000 + 7602;
 
         // To pass gate3, part 1, the bytes 2 and 3 (0-indexed) need to be zero.
         // Part 2 comes for free as long as no other bits are changes. Part 3
