@@ -1,0 +1,47 @@
+ /** 
+ *  EMITTER HUFF EXERCISE
+ *  
+ *  The task is to enable this contract, when the function `value(uint256, uint256)` is called, should
+ *  emit an event named `Value(uint256 indexed, uint256)`
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+
+ #define function value(uint256, uint256) payable returns()
+ 
+ #define event Value(uint256 indexed, uint256)
+
+
+ #define macro MAIN() = takes(0) returns(0) {
+    // Load calldata
+    0x00 calldataload 0xE0 shr
+
+    // Handle function value()
+    __FUNC_SIG(value) eq valueJump jumpi
+
+    // Revert
+    0x00 0x00 revert
+
+valueJump:
+    // Prepare event
+
+    // Load second argument into memory
+    0x20                // [size]
+    0x24                // [offset size]
+    0x00                // [destination offset size]
+    calldatacopy        // []
+    
+    // Load topic2 (first argument)
+    0x20                // [size]
+    0x04                // [offset size]
+    calldataload        // [topic2]
+
+    // Load topic1 (event signature)
+    __EVENT_HASH(Value) // [topic1 topic2]
+    
+    0x20                // [size topic1 topic2]
+    0x00                // [offset size topic1 topic2]
+    log2                // []
+
+    0x00 0x00 return
+ }

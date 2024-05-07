@@ -1,0 +1,84 @@
+
+/** 
+ *  MAX_OF_ARRAY HUFF EXERCISE
+ *  
+ *  In this task, Given an abi encoded array of uint256, return its maximum value. Revert if the array is empty.
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+
+#define function maxOfArray(uint256[]) payable returns(uint256)
+
+#define constant MAX = FREE_STORAGE_POINTER()
+
+#define macro MAIN() = takes(0) returns(0) {
+    0x00 calldataload 0xE0 shr  // [sig]
+    __FUNC_SIG(maxOfArray) eq mainJump jumpi // []
+
+    // Revert
+    0x00 0x00 revert
+
+mainJump:
+    // Read length
+    0x24                    // [offset]
+    calldataload            // [length]
+
+    // Handle zero
+    dup1 iszero             // [bool length]
+    revertJump jumpi        // [length]
+    
+    // Get starting index (0)
+    push0                   // [index length]
+
+    // Get data pointer
+    0x44                    // [pointer index length]
+    
+    // Get max
+    push0                   // [max pointer index length]
+
+continueJump:
+    // Get element
+    dup2 calldataload      // [element max pointer index length]
+
+    // Test less than
+    dup1                    // [element element max pointer index length]
+    dup3                    // [max element element max pointer index length]
+    gt                      // [bool element max pointer index length]
+
+    // Skip replace
+    skipReplaceJump jumpi   // [element max pointer index length]
+
+    // Prepare to pop off the old max
+    swap1                   // [max element pointer index length]
+
+skipReplaceJump:
+    // Remove the lesser element
+    pop                     // [(new)max pointer index length]
+
+    // Increment index
+    swap2                       // [index pointer max length]
+    0x01 add                    // [(new)index pointer max length]
+
+    // Increment pointer
+    swap1                       // [pointer index max length]
+    0x20 add                    // [(new)pointer index max length]
+
+    // Transform order for beginning of loop
+    swap1                       // [index pointer max length]
+    swap2                       // [max pointer index length]
+
+    // Duplicate length and index
+    dup4 dup4                   // [index length max pointer index length]
+
+    // Check index, continue if less than length
+    lt continueJump jumpi       // [max pointer index length]
+
+    // Loop complete
+    [MAX] mstore                // [pointer index length]
+    pop pop pop                 // []
+    0x20 [MAX] return
+
+revertJump:                     // [length]
+    pop                         // []
+    0x00 0x00 revert
+}

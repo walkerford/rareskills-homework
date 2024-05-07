@@ -1,0 +1,22 @@
+
+/**
+ *  CALL_VALUE HUFF EXERCISE
+ *
+ *
+ *  When a user sends a transaction to a smart contract, they can include value (ether). msg.value in solidity
+ *
+ *  The task is to write within the `MAIN` macro below, huff code to get and return the amount of ether sent as part of that call 
+*/
+
+#define macro MAIN() = takes(0) returns(0) {
+    // Put  call value onto stack
+    callvalue   // [msg.value]
+
+    // Store call value in memory
+    0x00 mstore  // []
+
+    // Return memory value
+    0x20        // [size]
+    0x00        // [offset, size]
+    return      // []
+}

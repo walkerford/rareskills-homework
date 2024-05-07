@@ -1,0 +1,69 @@
+
+/** 
+ *  MULTIPLY HUFF EXERCISE
+ *
+ *  When writing solidity, we most times have to perform some mathematical operations like multiplication etc
+ *  
+ *  The task is to write within the `MAIN` macro below, a function named `multiply` that takes in 2 uint256s, and returns their product. Be sure to revert on overflow
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+
+#define function multiply(uint256, uint256) payable returns(uint256)
+
+
+#define macro MAIN() = takes(0) returns(0) {
+    origin pop 
+    
+    // Load function signature
+    0x00 calldataload 0xE0 shr
+
+    // Match multiply
+    dup1 __FUNC_SIG(multiply) eq multiplyJump jumpi
+
+    // Revert default case
+    0x00 0x00 revert
+
+    multiplyJump:
+
+        // Get first argument
+        0x04 calldataload       // [a]
+
+        // Get second argument
+        0x24 calldataload       // [b a]
+
+        dup2 dup2               // [b a b a]
+
+        // Multiply
+        mul                     // [c b a]
+
+        // Check for zero
+        // There is no overflow if b==0
+        dup2                    // [b c b a]
+        iszero                  // [bool c b a]
+        noOverflowJump jumpi    // [c b a]
+
+        // Prepare to divide c / b and compare to a for overflow checking
+        dup1                    // [c c b a]
+        swap3                   // [a c b c]
+        swap2                   // [b c a c]
+        swap1                   // [c b a c]
+
+        // Check overflow
+        // If the quotient equals a, then there was no overflow
+        div                     // [d a c]
+        eq                      // [bool c]
+        noOverflowJump jumpi    // [c]
+
+        // Revert on overflow
+        0x00 0x00 revert
+
+    noOverflowJump:
+        
+        // Return product
+        0x00 mstore             // []
+        0x20 0x00 return
+
+
+
+}

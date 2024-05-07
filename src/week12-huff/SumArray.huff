@@ -1,0 +1,73 @@
+
+/** 
+ *  SUM_ARRAY HUFF EXERCISE
+ *
+ *  
+ *  The task is to write within the `MAIN` macro below, write a functionality that takes an array of uint256 as an argument and returns the sum of all the numbers
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+
+#define function sumArray(uint256[]) payable returns(uint256)
+
+#define constant ACCUMULATOR = FREE_STORAGE_POINTER()
+
+#define macro MAIN() = takes(0) returns(0) {
+    0x00 calldataload 0xE0 shr
+    __FUNC_SIG(sumArray) eq sumArrayJump jumpi
+
+    // Revert as default
+    0x00 0x00 revert
+
+    sumArrayJump:
+        // Element length is fixed 0x20, so we will just ignore it in the calldata
+
+        // Get array length
+        0x24 calldataload           // [length]
+        
+        // Handle zero length
+        dup1 iszero                 // [complete length]
+        completedJump jumpi         // [length]
+
+        // Get starting index
+        push0                       // [index length]
+
+        // Get data pointer
+        0x44                        // [pointer index length]
+        
+        // Get sum
+        push0                       // [sum pointer index length]
+
+    continueJump:
+        // Get element
+        dup2 calldataload           // [element sum pointer index length]
+
+        // Accumulate
+        add                         // [sum pointer index length]
+
+        // Increment index
+        swap2                       // [index pointer sum length]
+        0x01 add                    // [index pointer sum length]
+
+        // Increment pointer
+        swap1                       // [pointer index sum length]
+        0x20 add                    // [pointer index sum length]
+
+        // Transform order for beginning of loop
+        swap1                       // [index pointer sum length]
+        swap2                       // [sum pointer index length]
+
+        // Duplicate length and index
+        dup4 dup4                   // [index length sum pointer index length]
+
+        // Check index
+        lt continueJump jumpi       // [sum pointer index length]
+
+        // Loop complete
+        [ACCUMULATOR] mstore        // [pointer index length]
+        pop pop                     // [length]
+
+    completedJump:                  // [length]
+        pop                         // []
+        0x20 [ACCUMULATOR] return
+}

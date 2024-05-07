@@ -1,0 +1,76 @@
+ 
+/** 
+ *  DISTRIBUTE HUFF EXERCISE
+ *  
+ *  The task is to enable this contract, when called with function `distribute(address[])` to
+ *  distribute the value sent with the call to each address in the address array as evenly.
+ *  Revert if array length is 0
+ *  Assume that array length would always be less than or equal to msg.value
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+
+ #define function distribute(address[]) payable returns()
+
+
+ #define macro MAIN() = takes(0) returns(0) {
+    0x00 calldataload 0xE0 shr                      // [sig]
+    __FUNC_SIG(distribute) eq distributeJump jumpi  // []
+
+    // Revert
+    0x00 0x00 revert    // []
+
+distributeJump:
+    // Get array length
+    0x24 calldataload   // [length]
+
+    // Check for zero
+    dup1 iszero         // [bool length]
+    revertJump jumpi    // [length]
+
+    // Compute value distribution
+    dup1                // [length length]
+    callvalue           // [value length length]
+    div                 // [payment length]
+    
+    // Create index
+    push0               // [index payment length]
+
+    // Create data pointer
+    0x44                // [pointer index payment length]
+
+continueJump:           // [pointer index payment length]
+
+    // Prepare payment
+    push0 push0 push0 push0 // [argsOffset argsSize retOffset retSize pointer index payment length]
+    dup7                // [payment argsOffset argsSize retOffset retSize pointer index payment length]
+
+    // Load address
+    dup6                // [pointer payment argsOffset argsSize retOffset retSize pointer index payment length]
+    calldataload        // [address payment argsOffset argsSize retOffset retSize pointer index payment length]
+    
+    // Make payment
+    gas                 // [gas address payment argsOffset argsSize retOffset retSize pointer index payment length]
+    call                // [success pointer index payment length]
+    pop                 // [pointer index payment length]
+
+    // Increment index
+    swap1 0x01 add      // [index pointer payment length]
+
+    // Increment pointer
+    swap1 0x20 add      // [pointer index payment length]
+
+    // Check index
+    dup4                // [length pointer index payment length]
+    dup3                // [index length pointer index payment length]
+    lt                  // [bool pointer index payment length]
+    continueJump jumpi  // [point index payment length]
+
+    pop pop pop pop     // []
+    0x00 0x00 return
+
+revertJump:             // [length value]
+    pop pop
+    0x00 0x00 revert
+
+ }

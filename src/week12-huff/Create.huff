@@ -1,0 +1,58 @@
+ 
+/** 
+ *  CREATE HUFF EXERCISE
+ *  
+ *  The task is to deploy this contract with a function `makeContract()` which when called creates a contract
+ *  that when called with any data returns `0xcaffe`.
+ *  The call to `makeContract` should return the address of the newly created contract.
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+
+ #define function makeContract() payable returns(address)
+
+
+ #define macro MAIN() = takes(0) returns(0) {
+    0x00 calldataload 0xE0 shr
+    __FUNC_SIG(makeContract) eq mainJump jumpi
+
+    // Revert
+    0x00 0x00 revert
+
+mainJump:
+    0x600A80600A5F395FF3FE620CAFFE5F5260205FF3  // [code]
+    0x60 shl                    // [code] left-shifted 96 bits
+    0x00 mstore                 // []
+    0x14                        // [size]
+    0x00                        // [offset size]
+    0x00                        // [wei offset size]
+    create                      // [address]
+    0x00 mstore                 // []
+    0x20 0x00 return
+
+    // Init + runtime = 20 bytes = 0x14
+
+    // 0x600A80600A5F395FF3FE (10 bytes)
+    // Init code
+    // push1 (60)
+    // 0x0a         // Length of runtime code (for return)
+    // dup1 (80)    // Length of runtime code (for codecopy)
+    // push1 (60)
+    // 0x0a         // Where the runtime code begins, init code is 10 bytes
+    // push0 (5F)   // Destination memory slot
+    // codecopy (39)
+    // push0 (5F)   // Source memory slot
+    // return (F3)
+    // invalid (FE)
+
+    // 0x620CAFFE5F5260205FF3 (10 bytes)
+    // Runtime code
+    // push3 (62) 
+    // 0x0C 0xAF 0xFE   // Program return data
+    // push0 (5F)       // Destination memory slot
+    // mstore (52)
+    // push1 (60)
+    // 0x20             // Return data length
+    // push0 (5F)       // Source memory slot
+    // return (F3)
+ }

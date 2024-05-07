@@ -1,0 +1,34 @@
+
+/** 
+ *  KECCAK HUFF EXERCISE
+ *
+ *  When writing solidity, we some times have to perform hashing operations like keccak256 etc
+ *  
+ *  The task is to write within the `MAIN` macro below, a function that returns the keccak256 of the calldata. Should handle zero calldata
+ */
+
+// input is 32 bytes, but encoded as bytes (3*32=96=0x60)
+#define constant INPUT_SIZE = 0x60
+
+// output is encoded as bytes32 (0x20)
+#define constant OUTPUT_SIZE = 0x20
+
+ #define macro MAIN() = takes(0) returns(0) {
+    // Load data
+    [INPUT_SIZE]         // [size]
+    0x00                // [offset size]
+    0x00                // [dest offset size]
+    calldatacopy        // []
+
+    // Hash data
+    [INPUT_SIZE]         // [size]
+    0x00                // [offset size]
+    sha3                // [hash]
+    
+    // Store hash
+    0x00 mstore         // []
+
+    [OUTPUT_SIZE]       // [size]
+    0x00                // [offset size]
+    return
+ }
