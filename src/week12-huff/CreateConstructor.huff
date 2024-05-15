@@ -1,29 +1,8 @@
-
 #define macro MAIN() = takes(0) returns(0) {
-    // 0x00 0x00 return
-
-    // Desired: 0x600A80600A5F395FF3FE (10 bytes)
-    // Generated: 0x600a8060093d393df3600a80600a5f395ff3fe
-    // Init code
-    // push1 (60)
-    0x0a            // Length of runtime code (for return)
-    dup1            // Length of runtime code (for codecopy)
-    // push1 (60)
-    0x0a            // Where the runtime code begins, init code is 10 bytes
-    0x00            // Destination memory slot
-    codecopy
-    0x00            // Source memory slot
+    0xCAFFE   // Program return data
+    0x00
+    mstore
+    0x20
+    0x00
     return
-    invalid
-
-    // 0x620CAFFE5F5260205FF3 (10 bytes)
-    // Runtime code
-    // push3 (62) 
-    // 0x0C 0xAF 0xFE   // Program return data
-    // push0 (5F)       // Destination memory slot
-    // mstore (52)
-    // push1 (60)
-    // 0x20             // Return data length
-    // push0 (5F)       // Source memory slot
-    // return (F3)
 }

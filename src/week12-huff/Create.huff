@@ -11,8 +11,13 @@
 
  #define function makeContract() payable returns(address)
 
+// Code length: 19 bytes == 0x13
+#define constant CODE_LENGTH = 0x13
 
- #define macro MAIN() = takes(0) returns(0) {
+// Shift offset: 0x68 == 104 bits ((32 bytes - 19 bytes) * 8 bits/byte)
+#define constant CODE_SHIFT = 0x68
+
+#define macro MAIN() = takes(0) returns(0) {
     0x00 calldataload 0xE0 shr
     __FUNC_SIG(makeContract) eq mainJump jumpi
 
@@ -20,15 +25,24 @@
     0x00 0x00 revert
 
 mainJump:
-    0x600A80600A5F395FF3FE620CAFFE5F5260205FF3  // [code]
-    0x60 shl                    // [code] left-shifted 96 bits
+    // Code from CreateConstructor.huff
+    0x600a8060093d393df3620caffe5f5260205ff3 // [code]
+    
+    // Right-pad the code
+    [CODE_SHIFT] shl            // [code]
     0x00 mstore                 // []
-    0x14                        // [size]
+    [CODE_LENGTH]               // [size]
     0x00                        // [offset size]
     0x00                        // [wei offset size]
     create                      // [address]
     0x00 mstore                 // []
     0x20 0x00 return
+
+    // My original, hand-crafted code, which I later replaced with the Huff
+    // generated equivalent.
+    // The Huff generated equivalent uses `returncodesize` instead of `push0`
+
+    // 0x600a8060093d393df3620caffe5f5260205ff3
 
     // Init + runtime = 20 bytes = 0x14
 
